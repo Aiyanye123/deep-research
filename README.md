@@ -138,4 +138,4 @@ python -m unittest discover -s tests -v
 
 ## 许可证
 
-项目采用 [Apache License 2.0](LICENSE)。部分写作规则吸收了 MIT 许可的 Human Writing Skill 1.1.0，完整归属信息见 [`THIRD_PARTY_NOTICES.md`](plugins/deep-research/THIRD_PARTY_NOTICES.md)。
+项目采用 [Apache License 2.0](LICENSE)。
