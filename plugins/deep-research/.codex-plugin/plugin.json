@@ -1,0 +1,61 @@
+{
+  "name": "deep-research",
+  "version": "0.4.0+codex.20260806173101",
+  "description": "A quality-first, stateful Deep Research workflow for Codex with dynamic evidence gates and controllable long-form writing.",
+  "author": {
+    "name": "Aiyanye"
+  },
+  "keywords": [
+    "deep-research",
+    "codex-deep-research",
+    "brief-first",
+    "research",
+    "longform",
+    "prompt-rewriting",
+    "prose-humanizer",
+    "chinese-humanizer",
+    "human-writing",
+    "chinese-writing",
+    "anti-ai-writing",
+    "evidence-ledger",
+    "citation-audit",
+    "longform-writing",
+    "research-depth",
+    "stateful-research",
+    "evidence-gate",
+    "information-saturation",
+    "quality-first-research",
+    "workflow-gate",
+    "skill-orchestration",
+    "literary-criticism",
+    "original-insight",
+    "insight-audit",
+    "draft-snapshot",
+    "data-visualization",
+    "research-charts",
+    "image-generation"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Deep Research",
+    "shortDescription": "Quality-first research with dynamic evidence gates.",
+    "longDescription": "Deep Research implements a quality-first workflow on Codex: it begins with diverse, high-information clarification questions induced from the actual task instead of a fixed checklist, persists research state, rejects low-value source padding, uses dynamic targets and information saturation, blocks premature drafting, independently audits original insight, supports charts and visual assets, preserves long-form continuity, applies article-type-aware Chinese or English prose editing, protects quotations and citations, snapshots the researched draft, and runs final fact checks.",
+    "developerName": "Aiyanye",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Research",
+      "Write",
+      "Edit",
+      "Visualize"
+    ],
+    "defaultPrompt": [
+      "Use Deep Research for this topic.",
+      "Ask diverse, high-information questions until material uncertainties are resolved; 3 is only the floor.",
+      "Deep-dive, visualize useful evidence, and write with a persistent research session."
+    ],
+    "brandColor": "#111111",
+    "composerIcon": "./assets/icon.png",
+    "logo": "./assets/logo.png"
+  }
+}
