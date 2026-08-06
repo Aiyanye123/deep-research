@@ -104,34 +104,6 @@ The outline must pass `insight_audit` before pre-draft approval. Immediately bef
 Humanizer editing, `evidence_prehumanize_audit` automatically copies `draft.md` to
 immutable `researched-draft.md`; the final audit compares both versions.
 
-## Chinese Prose Profiles
-
-Chinese deliverables use one content-driven profile rather than a platform preset:
-
-- `essayistic`: literary and cultural criticism, reviews, columns, public essays,
-  narrative nonfiction, opinion, and voice-led explanation.
-- `formal`: academic, policy, legal, financial, market, journal, and institutional
-  research.
-- `technical`: engineering, standards, specifications, methods, and
-  documentation-like research.
-
-The style sheet records the selected profile, protected content, citation
-visibility, and evidence-preservation policy. The Humanizer never restarts intake,
-creates a second research plan, invents material, or silently shortens the requested
-deliverable. Evidence gaps return to the research workflow.
-
-After editing a Chinese draft, run:
-
-```powershell
-python scripts/check_chinese_prose.py research-sessions/example/draft.md --profile essayistic
-```
-
-The checker fails only on high-confidence residue such as model self-disclosure,
-chat endings, and opaque promotional jargon. Punctuation, contrast, first person,
-and context-dependent terminology produce warnings at most. Quotations, citations,
-reference sections, tables, figure metadata, URLs, code, and machine fields are
-protected from stylistic checks.
-
 ## Charts And Visuals
 
 `research-visualizer` decides whether a visual adds analytical value. It can create
@@ -195,6 +167,4 @@ integrity. It does not replace semantic review of prose or argument quality.
 - `references/security.md`
 - `references/evaluation.md`
 - `references/literary-research.md`
-- `references/chinese-prose.md`
-- `references/humanizer-zh.md`
 - `THIRD_PARTY_NOTICES.md`

@@ -22,13 +22,13 @@
 
 ## 核心能力
 
-- **动态澄清**：至少提出 3 个问题，但不设固定上限；问题由选题中的真实不确定性生成，不使用“字数、平台、文风、引用格式”固定问卷。
+- **动态澄清**：至少提出 3 个问题，但不设固定上限；问题由选题中的真实不确定性生成，不使用与任务无关的固定问卷。
 - **多波次研究**：把检索分为定位、扩展、反证、缺口补全和核验等阶段，阻止模型只搜索几个网页就收尾。
 - **动态证据门**：来源数量不是唯一目标。插件同时检查来源质量、信息增量、关键论断覆盖、反方材料和未解决缺口。
 - **持久研究会话**：查询、来源、论断、文本锚点、缺口和阶段状态都会写入文件，可在上下文压缩或新任务中继续。
 - **原创洞见**：在写作前区分材料共识、现有解释、反向解读与作者自己的论证，避免机械拼接网页摘要。
 - **长文连续性**：通过提纲、章节证据分配与 continuity notes 维持术语、论证和章节衔接。
-- **中英文润色**：中文按文章类型选择评论性、正式或技术配置；英文使用独立通用规则，不套用中文句式限制。
+- **成稿润色**：根据文章类型和内容调整表达，同时保护事实、引用与原有论证。
 - **事实防漂移**：Humanizer 前自动保留不可变的研究稿副本，润色后再次核对引用、数字、限定语和来源边界。
 - **研究可视化**：可生成可复现图表、Mermaid 图、表格，或调用 Codex 图像生成能力制作明确标注的解释性图片。
 
@@ -82,19 +82,9 @@ codex plugin add deep-research@aiyanye-deep-research
 | `insight-architect` | 原创论点、反向解读和长文结构 |
 | `research-visualizer` | 图表、表格、示意图和生成图片 |
 | `longform-writer` | 分章节写作与长文连续性 |
-| `prose-humanizer` | 文章类型导向的中英文润色 |
+| `prose-humanizer` | 文章类型导向的成稿润色 |
 
 主 Skill 会按固定阶段调用其余六个 Skill，并通过 `workflow-gate` 检查是否有阶段被遗漏。
-
-## 中文写作配置
-
-中文成稿不会按知乎、公众号或 Bangumi 等平台套用固定文风，而是根据内容和文体选择：
-
-- `essayistic`：文学文化批评、评论、专栏、公共写作和叙事性非虚构
-- `formal`：学术、政策、法律、金融、市场和机构型报告
-- `technical`：工程、标准、方法、规范与技术说明
-
-中文检查器只把模型自述、聊天结尾等高置信残留判为失败。冒号、破折号、第一人称、转折和专业术语不会被机械删除。直接引语、参考文献、链接、表格、图注、代码、名称和数字受到保护。
 
 ## 研究深度
 
@@ -108,12 +98,6 @@ codex plugin add deep-research@aiyanye-deep-research
 
 ```powershell
 python plugins/deep-research/scripts/evaluate_run.py --session <研究会话目录>
-```
-
-运行中文文风检查：
-
-```powershell
-python plugins/deep-research/scripts/check_chinese_prose.py <稿件.md> --profile essayistic
 ```
 
 ## 项目结构
@@ -139,4 +123,4 @@ python -m unittest discover -s tests -v
 
 ## 许可证
 
-项目采用 [Apache License 2.0](LICENSE)。部分中文写作规则吸收了 MIT 许可的 Human Writing Skill 1.1.0，完整归属信息见 [`THIRD_PARTY_NOTICES.md`](plugins/deep-research/THIRD_PARTY_NOTICES.md)。
+项目采用 [Apache License 2.0](LICENSE)。部分写作规则吸收了 MIT 许可的 Human Writing Skill 1.1.0，完整归属信息见 [`THIRD_PARTY_NOTICES.md`](plugins/deep-research/THIRD_PARTY_NOTICES.md)。
