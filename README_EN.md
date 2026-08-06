@@ -125,6 +125,42 @@ The outline must pass `insight_audit` before pre-draft approval. Immediately bef
 Humanizer editing, `evidence_prehumanize_audit` automatically copies `draft.md` to
 immutable `researched-draft.md`; the final audit compares both versions.
 
+## Language-Aware Prose Editing
+
+Writing direction is derived from the language, article type, subject, evidence
+density, reader relationship, and confirmed brief. Publication venue is not used as
+a voice preset.
+
+Chinese deliverables select one content-driven profile:
+
+- `essayistic`: interpretive and voice-led prose with visible judgment, flexible
+  rhythm, and room for qualified first person.
+- `formal`: precise, source-forward prose with explicit limits, stable structure,
+  and conventional research apparatus.
+- `technical`: terminology-stable prose with direct procedures, explicit
+  conditions, and exact preservation of code, formulas, units, and identifiers.
+
+The style sheet records the selected profile, protected content, citation
+visibility, evidence-preservation policy, sentence rhythm, paragraph movement,
+technical density, and phrases or habits to prefer or avoid. The Humanizer uses the
+session's claims, sources, textual anchors, and outline as its material base. It may
+not restart intake, create a second research plan, invent material, paraphrase
+direct quotations, or silently shorten the requested deliverable. Evidence gaps
+return to the research workflow.
+
+After editing a Chinese draft, run:
+
+```powershell
+python scripts/check_chinese_prose.py <draft-path> --profile <essayistic|formal|technical>
+```
+
+The checker fails only on high-confidence residue such as model self-disclosure,
+chat endings, and opaque promotional jargon. Punctuation, contrast, first person,
+and context-dependent terminology produce warnings at most. Quotations, citations,
+reference sections, tables, figure metadata, URLs, code, names, numbers, and
+machine fields are protected. English and other languages use language-appropriate
+editing rules and do not run the Chinese checker.
+
 ## Charts And Visuals
 
 `research-visualizer` decides whether a visual adds analytical value. It can create
@@ -188,4 +224,6 @@ integrity. It does not replace semantic review of prose or argument quality.
 - `references/security.md`
 - `references/evaluation.md`
 - `references/literary-research.md`
+- `references/chinese-prose.md`
+- `references/humanizer-zh.md`
 - `THIRD_PARTY_NOTICES.md`
