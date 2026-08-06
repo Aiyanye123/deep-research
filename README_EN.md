@@ -1,229 +1,141 @@
 <div align="center">
   <img src="plugins/deep-research/assets/logo.png" width="112" alt="Deep Research icon">
   <h1>Deep Research for Codex</h1>
-  <p>Controllable, resumable, evidence-driven research for high-quality long-form writing.</p>
+  <p>A controllable, resumable, evidence-driven Deep Research plugin for high-quality long-form writing.</p>
   <p><a href="README.md">简体中文</a> | <strong>English</strong></p>
 </div>
 
-Deep Research is a local Codex plugin for controllable, source-backed long-form
-research and writing.
+## Why This Plugin Exists
 
-It preserves the useful brief-first interaction:
+Ordinary "research this deeply" prompts often stop after opening only a handful of pages, then jump directly from search summaries to a finished draft. Deep Research turns research into an inspectable, persistent workflow: it first clarifies the uncertainties that materially affect the research direction, then searches in multiple waves, records sources and claims, checks evidence gaps, and allows outlining and drafting only after the dynamic evidence gate has passed.
 
-1. Ask and persist at least 3 dynamic questions before research, with no fixed upper limit.
-2. Confirm and rewrite the user's brief.
-3. Research in multiple waves.
-4. Persist queries, sources, claims, gaps, and textual anchors.
-5. Block outlining and drafting until the evidence gate passes.
-6. Build original insight and pass an independent insight audit.
-7. Select, generate, and audit useful charts, diagrams, or explanatory images.
-8. Draft with long-form continuity.
-9. Snapshot the researched draft, humanize the working copy, and audit both versions.
+It is primarily designed for:
 
-The plugin is not an official ChatGPT Deep Research implementation and does not
-claim access to private OpenAI internals.
+- Literary, film, and cultural criticism
+- Academic papers, policy research, and research reports
+- Market, industry, financial, and legal analysis
+- Evidence-based long-form work ranging from thousands to tens of thousands of words
+- Research deliverables that need charts, diagrams, or explanatory images
+
+## Core Capabilities
+
+- **Dynamic clarification**: asks at least 3 questions with no fixed upper limit; questions are induced from genuine uncertainties in the topic rather than an unrelated fixed questionnaire.
+- **Multi-wave research**: separates discovery into orientation, expansion, counterevidence, gap filling, and verification so the model cannot stop after searching only a few pages.
+- **Dynamic evidence gate**: source count is not the only target. The plugin also checks source quality, information gain, coverage of major claims, counterevidence, and unresolved gaps.
+- **Persistent research sessions**: queries, sources, claims, textual anchors, gaps, and stage state are written to files, allowing work to resume after context compression or in a new task.
+- **Original insight**: distinguishes source consensus, existing interpretations, counterreadings, and the writer's own argument before drafting, avoiding mechanical assembly of web summaries.
+- **Long-form continuity**: preserves terminology, argumentation, and section transitions through the outline, section-level evidence assignment, and continuity notes.
+- **Multilingual prose editing**: adjusts expression according to language, article type, and content while protecting facts, citations, and the established argument.
+- **Factual-drift protection**: automatically preserves an immutable copy of the researched draft before Humanizer editing, then rechecks citations, numbers, qualifications, and source boundaries afterward.
+- **Research visualization**: can generate reproducible charts, Mermaid diagrams, tables, or clearly labeled explanatory images through Codex image generation.
+
+## Workflow
+
+```text
+dynamic clarification
+  -> confirm brief
+  -> multi-wave research and source logging
+  -> evidence gate
+     -> fail: continue research
+     -> pass: evidence audit
+  -> insight and outline
+  -> independent insight audit
+  -> chart and visual decisions
+  -> long-form drafting
+  -> preserve researched draft
+  -> article-type-aware prose editing
+  -> final factual audit
+  -> workflow gate
+```
 
 ## Installation
 
-Add this repository as a Codex Git marketplace, then install the plugin:
+Requires a Codex CLI version that supports plugin marketplaces.
 
 ```powershell
 codex plugin marketplace add Aiyanye123/deep-research
 codex plugin add deep-research@aiyanye-deep-research
 ```
 
-Start a new Codex task after installation or upgrade so the new Skills are loaded
-from a fresh context.
+Start a new Codex task after installation or upgrade so the updated Skills are loaded completely.
 
-## Why It Is Different
+## Usage
 
-Most research prompts rely on the model to remember that it should search deeply.
-This plugin adds a lightweight filesystem runtime so research depth is observable
-and resumable.
-
-The runtime rejects duplicate queries and sources, tracks research waves and
-high-impact gaps, distinguishes qualified evidence from low-value source padding,
-tracks information saturation, and returns a machine-readable evidence-gate result.
-If the gate fails, the workflow must continue researching instead of drafting.
-It also records ordered companion-skill stages and rejects final completion when a
-research plan, evidence audit, insight architecture, style sheet, continuity pass,
-visualization review, humanizer pass, or final audit was skipped.
-
-## Bundled Skills
-
-The plugin source lives under `plugins/deep-research`. Paths in the following
-sections are relative to that directory.
+Select **Deep Research** in Codex, or make a request such as:
 
 ```text
-skills/deep-research/SKILL.md
-skills/research-orchestrator/SKILL.md
-skills/evidence-auditor/SKILL.md
-skills/insight-architect/SKILL.md
-skills/research-visualizer/SKILL.md
-skills/longform-writer/SKILL.md
-skills/prose-humanizer/SKILL.md
+Use Deep Research for this topic. Before formal research, ask me about the uncertainties that materially affect the argument and research direction. Confirm the brief, conduct multi-wave research, and write the long-form article only after the evidence gate passes.
 ```
 
-## Persistent Research Runtime
+The plugin completes dynamic clarification first and does not begin searching in the same turn. After the user replies, it generates and confirms the brief, then creates a persistent research session.
 
-Create a session:
+## Seven Skills
 
-```powershell
-cd plugins/deep-research
-python scripts/research_session.py init `
-  --session research-sessions/example `
-  --title "Example Research" `
-  --task-mode cultural_criticism `
-  --depth deep `
-  --required-lane primary_text `
-  --required-lane official
-```
+| Skill | Responsibility |
+| --- | --- |
+| `deep-research` | Main workflow, clarification protocol, and stage gates |
+| `research-orchestrator` | Query strategy, research waves, gaps, and stop conditions |
+| `evidence-auditor` | Source, claim, citation, and factual-drift audits |
+| `insight-architect` | Original thesis, counterreadings, and long-form structure |
+| `research-visualizer` | Charts, tables, diagrams, and generated images |
+| `longform-writer` | Section-by-section drafting and long-form continuity |
+| `prose-humanizer` | Article-type-aware multilingual prose editing |
 
-Before research, record at least three answered clarifications, write `brief.md` and
-`research-plan.md`, then record:
+The main Skill invokes the other six Skills at fixed stages and uses `workflow-gate` to verify that no stage was skipped.
 
-```powershell
-python scripts/research_session.py add-clarification --session research-sessions/example --dimension "task-specific dimension" --impact "what this answer changes" --question-form open --question "..." --answer "..."
-python scripts/research_session.py complete-stage --session research-sessions/example --stage brief_confirmed --note "Confirmed the binding brief, audience, scope, length, voice, and source constraints."
-python scripts/research_session.py complete-stage --session research-sessions/example --stage research_plan --note "Loaded research-orchestrator and defined source hierarchy, lanes, waves, gaps, verification, and stop conditions."
-```
+## Chinese Prose Profiles
 
-Log research:
+Writing direction is determined by language, article type, subject, evidence density, reader relationship, and the confirmed brief. Publication venue is not used as a voice preset. Chinese deliverables select one content-driven profile:
 
-```powershell
-python scripts/research_session.py add-query --session research-sessions/example --query "..." --wave orientation --lane official
-python scripts/research_session.py add-source --session research-sessions/example --url "https://example.com" --title "Example" --lane official --source-type official --opened --quality high --reading-depth deep
-python scripts/research_session.py add-claim --session research-sessions/example --claim "..." --source-id S-0001 --section "Section 1" --major
-python scripts/research_session.py add-gap --session research-sessions/example --question "..." --impact high --next-query "..."
-python scripts/research_session.py cover-item --session research-sessions/example --item "..."
-python scripts/research_session.py complete-wave --session research-sessions/example --wave orientation
-python scripts/research_session.py assess-saturation --session research-sessions/example --status pass --note "Targeted follow-up searches across the remaining source lanes repeated existing evidence; counterpoint and verification searches found no unresolved high-impact gaps."
-```
+- `essayistic`: emphasizes interpretation, judgment, and prose rhythm, allowing evidence-based first person and asymmetrical paragraph structures.
+- `formal`: emphasizes precise attribution, argumentative boundaries, stable structure, and conventional components of research documents.
+- `technical`: emphasizes terminological consistency, explicit conditions, direct procedures, and exact preservation of code, formulas, units, and identifiers.
 
-Before saturation can pass, the final two required waves must each contain an
-executed query with a substantive `--result-note`.
-
-Run the hard gate:
-
-```powershell
-python scripts/research_session.py gate --session research-sessions/example
-python scripts/research_session.py resume --session research-sessions/example
-```
-
-Do not outline or draft while `gate` returns `fail`.
-
-Record each ordered companion-skill stage with `complete-stage`. Before returning
-the final deliverable, run:
-
-```powershell
-python scripts/research_session.py workflow-gate --session research-sessions/example
-```
-
-Do not call the run complete while `workflow-gate` returns `fail`.
-
-The outline must pass `insight_audit` before pre-draft approval. Immediately before
-Humanizer editing, `evidence_prehumanize_audit` automatically copies `draft.md` to
-immutable `researched-draft.md`; the final audit compares both versions.
-
-## Language-Aware Prose Editing
-
-Writing direction is derived from the language, article type, subject, evidence
-density, reader relationship, and confirmed brief. Publication venue is not used as
-a voice preset.
-
-Chinese deliverables select one content-driven profile:
-
-- `essayistic`: interpretive and voice-led prose with visible judgment, flexible
-  rhythm, and room for qualified first person.
-- `formal`: precise, source-forward prose with explicit limits, stable structure,
-  and conventional research apparatus.
-- `technical`: terminology-stable prose with direct procedures, explicit
-  conditions, and exact preservation of code, formulas, units, and identifiers.
-
-The style sheet records the selected profile, protected content, citation
-visibility, evidence-preservation policy, sentence rhythm, paragraph movement,
-technical density, and phrases or habits to prefer or avoid. The Humanizer uses the
-session's claims, sources, textual anchors, and outline as its material base. It may
-not restart intake, create a second research plan, invent material, paraphrase
-direct quotations, or silently shorten the requested deliverable. Evidence gaps
-return to the research workflow.
+`style-sheet.md` records the selected profile, protected content, citation visibility, evidence-preservation policy, sentence rhythm, paragraph movement, technical density, and expressions to retain or avoid. The editing stage uses the session's claims, sources, textual anchors, and outline as its material base. It may not restart clarification, create a second research plan, invent material, paraphrase direct quotations, or silently shorten the requested length. Evidence gaps must return to the research workflow.
 
 After editing a Chinese draft, run:
 
 ```powershell
-python scripts/check_chinese_prose.py <draft-path> --profile <essayistic|formal|technical>
+python plugins/deep-research/scripts/check_chinese_prose.py <draft.md> --profile <essayistic|formal|technical>
 ```
 
-The checker fails only on high-confidence residue such as model self-disclosure,
-chat endings, and opaque promotional jargon. Punctuation, contrast, first person,
-and context-dependent terminology produce warnings at most. Quotations, citations,
-reference sections, tables, figure metadata, URLs, code, names, numbers, and
-machine fields are protected. English and other languages use language-appropriate
-editing rules and do not run the Chinese checker.
+The checker fails only on high-confidence residue such as model self-disclosure, chat endings, and opaque promotional jargon. Punctuation, contrast, first person, and context-dependent terminology produce warnings at most and are not mechanically removed. Direct quotations, citation markers, references, tables, figure captions, links, code, names, numbers, and machine fields are protected. English and other languages use their corresponding editing rules and do not run the Chinese checker.
 
-## Charts And Visuals
+## Research Depth
 
-`research-visualizer` decides whether a visual adds analytical value. It can create
-reproducible bar, line, and scatter charts from CSV with `scripts/render_chart.py`,
-use available statistical or spreadsheet tools for advanced plots, use Mermaid for
-structured diagrams, or call Codex built-in image generation for explanatory and
-editorial imagery. Generated images are labeled as illustration and never treated
-as empirical evidence. Every retained figure is recorded in `visuals.md` with its
-source data or prompt, caption, alt text, placement, and audit status.
+The plugin provides `light`, `standard`, `deep`, and `exhaustive` profiles, but uses dynamic targets instead of padding a raw source count. The current `exhaustive` profile has a qualified-source floor of 24, an evidence-value floor of 65 units, and a dynamic source target of 100. Research may stop below the dynamic target only after source lanes, counterevidence, verification, and information-saturation checks are complete. Rare, authoritative, deeply read material that supports major claims can receive additional evidence value; low-quality aggregations, duplicate rewrites, and pages with no information gain cannot be used as padding.
 
-Source targets are dynamic. The plugin requires a meaningful floor so research
-cannot stop after a few pages, but it does not reward padding. Shallow rewrites,
-irrelevant pages, and low-quality aggregations do not count.
+## Sessions And Evaluation
 
-Rare primary material, deeply read scholarship, authoritative records, independent
-reporting, and uniquely informative niche sources receive additional evidence-value
-units. This rewards depth and usefulness without allowing the agent to stop with
-only a handful of ordinary pages.
+Serious research tasks preserve `brief.md`, the research plan, source and claim ledgers, textual anchors, the outline, the original researched draft, and the final audit in a dedicated directory. Even after Codex context compression, the workflow can resume from session files instead of depending on chat memory.
 
-## Literary And Cultural Criticism
-
-The plugin does not treat online commentary as a substitute for reading the work.
-Use `add-anchor` to record scenes, passages, framing, motifs, dialogue, editing,
-music, omissions, and alternative readings.
-
-Before drafting, the insight stage identifies dominant interpretations, rejects
-conventional thesis candidates, and stress-tests the chosen argument.
-
-## Long-Form Writing
-
-For long projects, the session preserves:
-
-- Confirmed brief.
-- Research trace and evidence ledger.
-- Insight architecture and outline.
-- Section evidence assignments.
-- Continuity notes.
-- Current draft and audit result.
-
-This allows a new conversation or compressed context to resume from the session
-instead of reconstructing the project from memory.
-
-## Evaluation
-
-Run deterministic structural evaluation:
+Run the structural evaluator:
 
 ```powershell
-python scripts/evaluate_run.py --session research-sessions/example
+python plugins/deep-research/scripts/evaluate_run.py --session <research-session-directory>
 ```
 
-The evaluator checks research coverage, source quality and diversity, claim
-grounding, analysis structure, long-form artifacts, reliability, and workflow
-integrity. It does not replace semantic review of prose or argument quality.
+## Project Structure
 
-## References
+```text
+.agents/plugins/marketplace.json     Codex Git marketplace manifest
+plugins/deep-research/
+  .codex-plugin/plugin.json          Plugin metadata
+  skills/                             Seven workflow Skills
+  scripts/                            Session, gate, evaluation, and chart scripts
+  references/                         Research and writing rules
+  tests/                              Regression tests
+```
 
-- `ARCHITECTURE.md`
-- `references/official-mechanism.md`
-- `references/session-schema.md`
-- `references/depth-profiles.md`
-- `references/security.md`
-- `references/evaluation.md`
-- `references/literary-research.md`
-- `references/chinese-prose.md`
-- `references/humanizer-zh.md`
-- `THIRD_PARTY_NOTICES.md`
+See [`ARCHITECTURE.md`](plugins/deep-research/ARCHITECTURE.md) for implementation details.
+
+## Validation
+
+```powershell
+cd plugins/deep-research
+python -m unittest discover -s tests -v
+```
+
+## License
+
+This project is licensed under the [Apache License 2.0](LICENSE). Some writing rules adapt material from Human Writing Skill 1.1.0 under the MIT License; see [`THIRD_PARTY_NOTICES.md`](plugins/deep-research/THIRD_PARTY_NOTICES.md) for full attribution.
