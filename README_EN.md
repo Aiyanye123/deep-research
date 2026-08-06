@@ -138,4 +138,4 @@ python -m unittest discover -s tests -v
 
 ## License
 
-This project is licensed under the [Apache License 2.0](LICENSE). Some writing rules adapt material from Human Writing Skill 1.1.0 under the MIT License; see [`THIRD_PARTY_NOTICES.md`](plugins/deep-research/THIRD_PARTY_NOTICES.md) for full attribution.
+This project is licensed under the [Apache License 2.0](LICENSE).
