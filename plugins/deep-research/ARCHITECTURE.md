@@ -5,7 +5,8 @@ Deep Research combines a concise skill pipeline with a persistent filesystem run
 ## State Machine
 
 ```text
-clarify
+question-calibration search
+  -> clarify
   -> confirm brief
   -> record brief_confirmed
   -> create research session
@@ -26,6 +27,13 @@ clarify
   -> evidence_final_audit
   -> workflow gate
 ```
+
+Question calibration is a bounded, pre-session orientation step. It verifies
+time-sensitive or ambiguous premises so clarification questions are not based only
+on model memory. It stops as soon as the intake can be accurate, does not follow
+citation chains or seek broad coverage, and does not contribute queries, sources,
+claims, or evidence units to the formal research session. Relevant sources are
+reopened and assessed after the brief is confirmed.
 
 The evidence gate is the transition boundary between research and writing. A serious
 research deliverable must not enter outlining or drafting while the gate fails.

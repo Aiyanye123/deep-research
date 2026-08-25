@@ -2,12 +2,12 @@
   <img src="plugins/deep-research/assets/logo.png" width="112" alt="Deep Research icon">
   <h1>Deep Research for Codex</h1>
   <p>A controllable, resumable, evidence-driven Deep Research plugin for high-quality long-form writing.</p>
-  <p><a href="README.md">简体中文</a> | <strong>English</strong></p>
+  <p><a href="README_ZN.md">简体中文</a> | <strong>English</strong></p>
 </div>
 
 ## Why This Plugin Exists
 
-Ordinary "research this deeply" prompts often stop after opening only a handful of pages, then jump directly from search summaries to a finished draft. Deep Research turns research into an inspectable, persistent workflow: it first clarifies the uncertainties that materially affect the research direction, then searches in multiple waves, records sources and claims, checks evidence gaps, and allows outlining and drafting only after the dynamic evidence gate has passed.
+Ordinary "research this deeply" prompts often stop after opening only a handful of pages, then jump directly from search summaries to a finished draft. Deep Research turns research into an inspectable, persistent workflow: it first uses a simple orientation search to calibrate the intake, clarifies the uncertainties that materially affect the research direction, then searches formally in multiple waves, records sources and claims, checks evidence gaps, and allows outlining and drafting only after the dynamic evidence gate has passed.
 
 It is primarily designed for:
 
@@ -19,6 +19,7 @@ It is primarily designed for:
 
 ## Core Capabilities
 
+- **Question calibration**: performs a simple orientation search before asking questions, checks only the premises that materially affect the intake, and stops as soon as accurate questioning is possible.
 - **Dynamic clarification**: asks at least 3 questions with no fixed upper limit; questions are induced from genuine uncertainties in the topic rather than an unrelated fixed questionnaire.
 - **Multi-wave research**: separates discovery into orientation, expansion, counterevidence, gap filling, and verification so the model cannot stop after searching only a few pages.
 - **Dynamic evidence gate**: source count is not the only target. The plugin also checks source quality, information gain, coverage of major claims, counterevidence, and unresolved gaps.
@@ -32,7 +33,8 @@ It is primarily designed for:
 ## Workflow
 
 ```text
-dynamic clarification
+simple question-calibration search
+  -> dynamic clarification
   -> confirm brief
   -> multi-wave research and source logging
   -> evidence gate
@@ -64,10 +66,10 @@ Start a new Codex task after installation or upgrade so the updated Skills are l
 Select **Deep Research** in Codex, or make a request such as:
 
 ```text
-Use Deep Research for this topic. Before formal research, ask me about the uncertainties that materially affect the argument and research direction. Confirm the brief, conduct multi-wave research, and write the long-form article only after the evidence gate passes.
+Use Deep Research for this topic. First run a simple orientation search only to calibrate the intake, then ask me about the uncertainties that materially affect the argument and research direction. Confirm the brief, conduct multi-wave formal research, and write the long-form article only after the evidence gate passes.
 ```
 
-The plugin completes dynamic clarification first and does not begin searching in the same turn. After the user replies, it generates and confirms the brief, then creates a persistent research session.
+The plugin performs only a small orientation search before asking dynamic questions; it does not begin formal research in that turn. The calibration search stops as soon as the intake can be accurate, does not pursue broad coverage, and does not count toward the later evidence gate. After the user replies, the plugin generates and confirms the brief, then creates a persistent research session.
 
 ## Seven Skills
 

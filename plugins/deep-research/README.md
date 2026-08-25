@@ -3,17 +3,25 @@
 Deep Research is a local Codex plugin for controllable, source-backed long-form
 research and writing.
 
-It preserves the useful brief-first interaction:
+It preserves the useful brief-first interaction while calibrating questions against
+current external context:
 
-1. Ask and persist at least 3 dynamic questions before research, with no fixed upper limit.
-2. Confirm and rewrite the user's brief.
-3. Research in multiple waves.
-4. Persist queries, sources, claims, gaps, and textual anchors.
-5. Block outlining and drafting until the evidence gate passes.
-6. Build original insight and pass an independent insight audit.
-7. Select, generate, and audit useful charts, diagrams, or explanatory images.
-8. Draft with long-form continuity.
-9. Snapshot the researched draft, humanize the working copy, and audit both versions.
+1. Run a simple orientation search to verify only the premises that materially
+   affect the questions, then stop as soon as the intake can be accurate.
+2. Ask and persist at least 3 dynamic questions, with no fixed upper limit.
+3. Confirm and rewrite the user's brief.
+4. Start formal research in multiple waves.
+5. Persist queries, sources, claims, gaps, and textual anchors.
+6. Block outlining and drafting until the evidence gate passes.
+7. Build original insight and pass an independent insight audit.
+8. Select, generate, and audit useful charts, diagrams, or explanatory images.
+9. Draft with long-form continuity.
+10. Snapshot the researched draft, humanize the working copy, and audit both versions.
+
+The initial calibration scan improves intake but does not count as formal research.
+Sources that matter must be reopened, assessed, and logged after the brief is
+confirmed. The scan does not follow citation chains or attempt broad coverage; any
+remaining uncertainty becomes a clarification question.
 
 The plugin is not an official ChatGPT Deep Research implementation and does not
 claim access to private OpenAI internals.
@@ -58,8 +66,8 @@ python scripts/research_session.py init `
   --required-lane official
 ```
 
-Before research, record at least three answered clarifications, write `brief.md` and
-`research-plan.md`, then record:
+Before formal research, record at least three answered clarifications, write
+`brief.md` and `research-plan.md`, then record:
 
 ```powershell
 python scripts/research_session.py add-clarification --session research-sessions/example --dimension "task-specific dimension" --impact "what this answer changes" --question-form open --question "..." --answer "..."

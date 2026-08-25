@@ -181,7 +181,7 @@ topic taxonomy or content/production quota. It has no waiver path.
 
 ## Brief Confirmation
 
-[Write one natural paragraph confirming the deliverable, audience, article type, focus, length, voice, and source boundary before researching.]
+[Write one natural paragraph confirming the deliverable, audience, article type, focus, length, voice, and source boundary before formal research.]
 
 {BRIEF_TEMPLATE}
 

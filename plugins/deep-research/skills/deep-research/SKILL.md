@@ -1,6 +1,6 @@
 ---
 name: deep-research
-description: Use when the user asks for Deep Research on Codex, brief-first research, controllable source-backed reports, long-form writing, criticism, reviews, market research, or any workflow where Codex should ask at least 3 dynamic questions before researching and must continue research until a persistent evidence gate passes.
+description: Use when the user asks for Deep Research on Codex, brief-first research, controllable source-backed reports, long-form writing, criticism, reviews, market research, or any workflow where Codex should briefly calibrate intake against current context, ask at least 3 dynamic questions, and continue formal research until a persistent evidence gate passes.
 ---
 
 # Deep Research
@@ -15,15 +15,16 @@ implementation details.
 
 For serious research or long-form work:
 
-1. Ask at least 3 dynamic clarification questions.
-2. Confirm and rewrite the brief.
-3. Create a persistent research session.
-4. Research in waves and update session state after every wave.
-5. Demonstrate information saturation and run the evidence gate.
-6. If the gate fails, continue research. Do not outline or draft.
-7. After the gate passes, build insight and outline, then draft.
-8. Review whether tables, charts, diagrams, or other visuals would strengthen the argument.
-9. Audit, humanize, and audit again.
+1. Run a small, bounded current-context search to calibrate the intake.
+2. Ask at least 3 dynamic clarification questions.
+3. Confirm and rewrite the brief.
+4. Create a persistent research session.
+5. Research in waves and update session state after every wave.
+6. Demonstrate information saturation and run the evidence gate.
+7. If the gate fails, continue research. Do not outline or draft.
+8. After the gate passes, build insight and outline, then draft.
+9. Review whether tables, charts, diagrams, or other visuals would strengthen the argument.
+10. Audit, humanize, and audit again.
 
 Do not replace this flow with a generic task card. Do not stop after a few pages
 because the topic appears familiar.
@@ -56,12 +57,54 @@ runtime stages are:
 
 Do not return the final researched deliverable until `workflow-gate` passes.
 
-## Stage 1: Clarify
+## Stage 1: Calibrate, Then Clarify
 
 Ask at least 3 questions, but treat 3 only as a safety floor, never as the target.
 There is no preferred count and no four-or-five-question ceiling.
 
-Before displaying questions, silently build a topic map and a candidate pool:
+### Question-Calibration Search
+
+Before displaying questions for any factual or externally researchable topic, use
+available search or browsing tools to run a bounded calibration scan. This scan is
+required even when the prompt appears clear, because model memory may be stale,
+incomplete, or wrong.
+
+Keep it deliberately small and simple. Use only the searches needed to check the
+few premises most likely to change the questions, and stop as soon as the topic is
+clear enough for accurate intake. Do not follow citation chains, map every source
+lane, collect broad background, or perform full counterpoint and verification
+passes. If a material uncertainty remains, turn it into a clarification question
+rather than expanding the scan into research.
+
+Use the scan only to improve the questions:
+
+- Resolve entity, title, spelling, translation, edition, version, date, and scope
+  ambiguity.
+- Verify current status and any factual premise in the prompt that would materially
+  change what should be asked.
+- Learn the field's current vocabulary, obvious source lanes, and major live
+  disputes well enough to avoid naive or obsolete questions.
+- Prefer authoritative orientation sources when available. Search snippets may
+  guide the next query but are not verified evidence.
+- Search further when the first result exposes a consequential ambiguity; stop
+  when additional searching would begin answering the research question rather
+  than calibrating the intake.
+
+This is not the formal research phase. Do not claim coverage, information
+saturation, or evidentiary support from it; do not build a thesis or draft; and do
+not count its searches or pages toward the later evidence gate. After the brief is
+confirmed, formally reopen and assess any source that matters, then record it in
+the persistent session.
+
+Skip public-web calibration only when the task is wholly creative, depends only on
+private or user-supplied material, the user forbids external lookup, or no search
+tool is available. In that case, state the relevant limitation briefly and frame
+uncertain premises as questions rather than facts.
+
+### Build The Question Set
+
+Using the user's request, prior context, supplied material, and calibration results,
+silently build a topic map and a candidate pool:
 
 1. Separate what the user already fixed from what remains genuinely undecided.
 2. Induce possible question dimensions from this request. They may concern the
@@ -86,8 +129,11 @@ Question behavior:
   unrelated topic is probably too generic.
 - When useful, anchor a question to a specific person, scene, passage, concept,
   claim, dataset, causal assumption, or unresolved contrast found in the prompt,
-  prior chat, outline, or user-provided material. Merely inserting the work or
-  company name into a generic question does not make it topic-specific.
+  prior chat, user-provided material, or calibration scan. Merely inserting an
+  entity name into a generic question does not make it topic-specific.
+- Distinguish verified orientation from inference. If a question depends on a
+  disputed, incomplete, or time-sensitive premise, name that uncertainty instead
+  of presenting the premise as settled fact.
 - Include at least one genuinely open question whose answer cannot be reduced to
   yes/no or choosing among options supplied by Codex. It may invite the user's
   hunch, unresolved discomfort, overlooked material, preferred contradiction, or
@@ -101,7 +147,9 @@ Question behavior:
 - Give each question one primary decision. Split independent choices instead of
   combining source languages, interview policy, locator format, bibliography,
   and other separable decisions into one long question.
-- Do not ask again about supplied choices. Do not research in the same response.
+- Do not ask again about supplied choices. The calibration search happens before
+  the response; do not begin formal research or present research conclusions in
+  the question message.
 - Ask more questions when the request contains several independent uncertainties,
   answers expose new branches, the topic has competing frames, or the user has
   not yet chosen the central problem.
