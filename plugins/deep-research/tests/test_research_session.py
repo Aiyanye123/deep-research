@@ -29,6 +29,76 @@ class ResearchSessionTests(unittest.TestCase):
         )
         self.assertEqual(args.func(args), 0)
 
+    def write_audit_artifact(
+        self, session: Path, stage: str, status: str = "pass"
+    ) -> Path:
+        lines = [
+            f"# {stage}",
+            f"Status: {status}",
+            "Required revisions: none",
+        ]
+        if stage == "insight_audit":
+            lines.extend(
+                (
+                    "Knowledge contribution: A specific synthesis.",
+                    "Strongest alternative: The dominant reading.",
+                    "Counterevidence: A material contrary example.",
+                    "Judgment update: The contrary example narrows the conclusion.",
+                )
+            )
+        lines.append(
+            f"Input fingerprint: {research_session.audit_fingerprint(session, stage)}"
+        )
+        artifact = session / research_session.WORKFLOW_STAGE_BY_NAME[stage]["artifact"]
+        artifact.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        return artifact
+
+    def prepare_minimal_evidence(self, session: Path) -> None:
+        state = research_session.load_session(session)
+        state["required_waves"] = []
+        for key in state["thresholds"]:
+            if key == "max_domain_share":
+                state["thresholds"][key] = 1.0
+            else:
+                state["thresholds"][key] = 0
+        state["saturation"] = {
+            "status": "pass",
+            "note": "Targeted verification and counterpoint searches found no unresolved high-impact evidence gaps.",
+            "evidence_query_ids": [],
+        }
+        research_session.save_session(session, state)
+        (session / "queries.jsonl").write_text("", encoding="utf-8")
+        (session / "gaps.jsonl").write_text("", encoding="utf-8")
+        (session / "textual-anchors.jsonl").write_text("", encoding="utf-8")
+        (session / "sources.jsonl").write_text(
+            json.dumps(
+                {
+                    "id": "S-0001",
+                    "canonical_url": "https://example.com/source",
+                    "lane": "official",
+                    "source_type": "official",
+                    "quality": "high",
+                    "reading_depth": "deep",
+                    "opened": True,
+                    "status": "usable",
+                }
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        (session / "claims.jsonl").write_text(
+            json.dumps(
+                {
+                    "id": "C-0001",
+                    "claim": "A supported research finding.",
+                    "source_ids": ["S-0001"],
+                    "anchor_ids": [],
+                }
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+
     def complete_opening_stages(self, session: Path) -> None:
         parser = research_session.build_parser()
         for index, dimension in enumerate(("object", "angle", "scope")):
@@ -70,6 +140,53 @@ class ResearchSessionTests(unittest.TestCase):
         ):
             self.complete_stage(session, stage, note)
 
+    def test_failed_and_stale_audits_cannot_approve_research(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            session = Path(temp) / "session"
+            parser = research_session.build_parser()
+            args = parser.parse_args(["init", "--session", str(session), "--title", "Audit contract"])
+            args.func(args)
+            self.complete_opening_stages(session)
+            self.prepare_minimal_evidence(session)
+            self.write_audit_artifact(session, "evidence_preoutline_audit", status="fail")
+            with self.assertRaisesRegex(SystemExit, "Status: pass"):
+                self.complete_stage(session, "evidence_preoutline_audit", "The audit found a material unsupported conclusion that requires revision.")
+            self.write_audit_artifact(session, "evidence_preoutline_audit")
+            claims = research_session.read_jsonl(session / "claims.jsonl")
+            claims[0]["claim"] = "The conclusion changed after its audit."
+            research_session.write_jsonl(session / "claims.jsonl", claims)
+            with self.assertRaisesRegex(SystemExit, "fingerprint"):
+                self.complete_stage(session, "evidence_preoutline_audit", "Attempt to reuse an audit after changing its central conclusion.")
+            self.write_audit_artifact(session, "evidence_preoutline_audit")
+            self.complete_stage(session, "evidence_preoutline_audit", "Audited the revised conclusion against the current source evidence.")
+
+    def test_sparse_corpus_still_requires_valid_major_claim_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            session = Path(temp) / "session"
+            parser = research_session.build_parser()
+            args = parser.parse_args(["init", "--session", str(session), "--title", "Bounded corpus"])
+            args.func(args)
+            default_thresholds = research_session.load_session(session)["thresholds"]
+            self.prepare_minimal_evidence(session)
+            state = research_session.load_session(session)
+            state["thresholds"] = default_thresholds
+            research_session.save_session(session, state)
+            result = research_session.gate_result(session)
+            self.assertEqual(result["status"], "pass")
+            self.assertTrue(any("Qualified usable sources" in item for item in result["warnings"]))
+            claims = research_session.read_jsonl(session / "claims.jsonl")
+            claims[0]["major"] = True
+            research_session.write_jsonl(session / "claims.jsonl", claims)
+            self.assertEqual(research_session.gate_result(session)["status"], "fail")
+            claims[0].update(evidence_note="The table supports only the stated population.", locator="S-0001, table 2")
+            research_session.write_jsonl(session / "claims.jsonl", claims)
+            self.assertEqual(research_session.gate_result(session)["status"], "pass")
+            claims[0]["source_ids"] = ["S-9999"]
+            research_session.write_jsonl(session / "claims.jsonl", claims)
+            self.assertEqual(research_session.gate_result(session)["status"], "fail")
+            research_session.write_jsonl(session / "claims.jsonl", [])
+            self.assertEqual(research_session.gate_result(session)["status"], "fail")
+
     def test_canonicalize_url_removes_tracking(self) -> None:
         actual = research_session.canonicalize_url(
             "https://Example.com/article/?utm_source=x&b=2&a=1#fragment"
@@ -95,10 +212,43 @@ class ResearchSessionTests(unittest.TestCase):
                 ]
             )
             self.assertEqual(args.func(args), 0)
+            state = research_session.load_session(session)
+            self.assertEqual(state["schema_version"], 3)
             result = research_session.gate_result(session)
             self.assertEqual(result["status"], "fail")
             self.assertTrue(any("Missing required waves" in item for item in result["reasons"]))
-            self.assertTrue(any("Textual anchors" in item for item in result["reasons"]))
+            self.assertTrue(
+                any(
+                    "Literary or cultural research requires primary-text anchors" in item
+                    for item in result["reasons"]
+                )
+            )
+            self.assertTrue(any("Executed queries" in item for item in result["warnings"]))
+            self.assertTrue(
+                any("Qualified usable sources" in item for item in result["warnings"])
+            )
+            self.assertTrue(
+                any("Unique source domains" in item for item in result["warnings"])
+            )
+            self.assertTrue(any("Textual anchors" in item for item in result["warnings"]))
+            self.assertTrue(
+                any("No claim-level evidence recorded" in item for item in result["reasons"])
+            )
+            (session / "gaps.jsonl").write_text(
+                json.dumps(
+                    {
+                        "id": "G-0001",
+                        "question": "Was a decisive record omitted?",
+                        "impact": "high",
+                        "status": "open",
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            result = research_session.gate_result(session)
+            self.assertEqual(result["status"], "fail")
+            self.assertTrue(any("Open high-impact gaps" in item for item in result["reasons"]))
 
     def test_force_init_clears_stale_figures(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -130,7 +280,7 @@ class ResearchSessionTests(unittest.TestCase):
             session = Path(temp) / "session"
             session.mkdir()
             state = {
-                "schema_version": 1,
+                "schema_version": 3,
                 "title": "Test",
                 "task_mode": "general_research",
                 "depth_profile": "light",
@@ -198,12 +348,12 @@ class ResearchSessionTests(unittest.TestCase):
             self.assertEqual(result["status"], "fail")
             self.assertTrue(any("not qualified and usable" in item for item in result["reasons"]))
 
-    def test_gate_passes_configured_minimal_session(self) -> None:
+    def test_gate_accepts_supported_findings_below_effort_floors(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             session = Path(temp) / "session"
             session.mkdir()
             state = {
-                "schema_version": 1,
+                "schema_version": 3,
                 "title": "Test",
                 "task_mode": "general_research",
                 "depth_profile": "light",
@@ -219,16 +369,18 @@ class ResearchSessionTests(unittest.TestCase):
                 "planned_sections": ["Findings"],
                 "budgets": {"max_queries": 5, "max_failed_sources": 2},
                 "thresholds": {
-                    "min_executed_queries": 0,
-                    "min_queries_per_wave": 0,
-                    "min_opened_sources": 1,
-                    "target_opened_sources": 1,
-                    "min_unique_domains": 1,
-                    "min_independent_sources": 0,
-                    "min_authoritative_sources": 1,
-                    "min_covered_lanes": 1,
-                    "max_domain_share": 1.0,
-                    "min_claims": 1,
+                    "min_executed_queries": 4,
+                    "min_queries_per_wave": 3,
+                    "min_opened_sources": 4,
+                    "target_opened_sources": 4,
+                    "min_source_units": 4.0,
+                    "target_source_units": 5.0,
+                    "min_unique_domains": 3,
+                    "min_independent_sources": 2,
+                    "min_authoritative_sources": 3,
+                    "min_covered_lanes": 2,
+                    "max_domain_share": 0.5,
+                    "min_claims": 2,
                     "min_textual_anchors": 0,
                 },
                 "evidence_gate": "not_run",
@@ -282,12 +434,34 @@ class ResearchSessionTests(unittest.TestCase):
                         "source_ids": ["S-0001"],
                         "anchor_ids": [],
                         "section": "Findings",
+                        "evidence_note": "The official record confirms the supported finding.",
+                        "locator": "S-0001, paragraph 4",
                     }
                 )
                 + "\n",
                 encoding="utf-8",
             )
-            self.assertEqual(research_session.gate_result(session)["status"], "pass")
+            result = research_session.gate_result(session)
+            self.assertEqual(result["status"], "pass")
+            self.assertEqual(result["metrics"]["qualified_usable_sources"], 1)
+            self.assertTrue(any("Executed queries" in item for item in result["warnings"]))
+            self.assertTrue(
+                any("Qualified usable sources" in item for item in result["warnings"])
+            )
+            self.assertTrue(any("Unique source domains" in item for item in result["warnings"]))
+            self.assertTrue(any("Source concentration" in item for item in result["warnings"]))
+
+            claim = json.loads((session / "claims.jsonl").read_text(encoding="utf-8"))
+            claim["locator"] = None
+            (session / "claims.jsonl").write_text(
+                json.dumps(claim) + "\n", encoding="utf-8"
+            )
+            result = research_session.gate_result(session)
+            self.assertEqual(result["status"], "fail")
+            self.assertTrue(
+                any("Major claims lack evidence explanation or locator" in item
+                    for item in result["reasons"])
+            )
 
     def test_low_quality_source_does_not_count_as_qualified(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -488,7 +662,7 @@ class ResearchSessionTests(unittest.TestCase):
             )
             self.assertEqual(stage_args.func(stage_args), 0)
 
-    def test_brief_requires_distinct_task_induced_dimensions(self) -> None:
+    def test_brief_accepts_repeated_clarification_dimensions(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             session = Path(temp) / "session"
             parser = research_session.build_parser()
@@ -528,10 +702,9 @@ class ResearchSessionTests(unittest.TestCase):
                     "Confirmed a complete brief with scope and source constraints.",
                 ]
             )
-            with self.assertRaises(SystemExit):
-                stage_args.func(stage_args)
+            self.assertEqual(stage_args.func(stage_args), 0)
 
-    def test_brief_requires_a_genuinely_open_question(self) -> None:
+    def test_brief_accepts_only_choice_clarifications(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             session = Path(temp) / "session"
             parser = research_session.build_parser()
@@ -572,10 +745,9 @@ class ResearchSessionTests(unittest.TestCase):
                     "Confirmed a complete brief with scope and source constraints.",
                 ]
             )
-            with self.assertRaises(SystemExit):
-                stage_args.func(stage_args)
+            self.assertEqual(stage_args.func(stage_args), 0)
 
-    def test_brief_requires_three_clarifications(self) -> None:
+    def test_complete_brief_requires_opening_answers(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             session = Path(temp) / "session"
             parser = research_session.build_parser()
@@ -597,8 +769,46 @@ class ResearchSessionTests(unittest.TestCase):
                     "Confirmed a complete brief with scope and source constraints.",
                 ]
             )
-            with self.assertRaises(SystemExit):
+            with self.assertRaisesRegex(
+                SystemExit, "Opening questions require actual user answers"
+            ):
                 stage_args.func(stage_args)
+            self.assertEqual(
+                research_session.completed_stage_names(research_session.load_session(session)),
+                [],
+            )
+
+    def test_opening_questions_accept_actual_answer(self) -> None:
+        records = [{
+            "question": "Which competing reading should the study examine?",
+            "answer": "Both.",
+        }]
+        self.assertEqual(
+            research_session.validate_opening_questions("brief_confirmed", records, None),
+            "",
+        )
+
+    def test_opening_questions_reject_unanswered_question(self) -> None:
+        records = [{"question": "Which reading?", "answer": " "}]
+        with self.assertRaisesRegex(
+            SystemExit, "Opening questions require actual user answers"
+        ):
+            research_session.validate_opening_questions("brief_confirmed", records, None)
+
+    def test_opening_questions_preserve_explicit_waiver(self) -> None:
+        request = "跳过提问，直接开始研究。"
+        self.assertEqual(
+            research_session.validate_opening_questions("brief_confirmed", [], request),
+            request,
+        )
+
+    def test_opening_questions_reject_empty_waiver(self) -> None:
+        with self.assertRaisesRegex(SystemExit, "must be non-empty"):
+            research_session.validate_opening_questions("brief_confirmed", [], " ")
+
+    def test_opening_questions_waiver_is_brief_only(self) -> None:
+        with self.assertRaisesRegex(SystemExit, "valid only for brief_confirmed"):
+            research_session.validate_opening_questions("research_plan", [], "Skip questions.")
 
     def test_clarification_requires_decision_impact(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -656,10 +866,6 @@ class ResearchSessionTests(unittest.TestCase):
             researched_draft = session / "researched-draft.md"
             researched_draft.write_text(
                 "# Draft\n\nResearched draft before prose editing.\n", encoding="utf-8"
-            )
-            (session / "final-audit.md").write_text(
-                "# Final Evidence Audit\n\nAll current claims and citations were checked.\n",
-                encoding="utf-8",
             )
             state = {
                 "schema_version": 2,
@@ -723,6 +929,7 @@ class ResearchSessionTests(unittest.TestCase):
                 "textual-anchors.jsonl",
             ):
                 (session / name).write_text("", encoding="utf-8")
+            self.write_audit_artifact(session, "evidence_final_audit")
             self.assertEqual(research_session.workflow_gate_result(session)["status"], "pass")
             draft.write_text("# Draft\n\nChanged after audit.\n", encoding="utf-8")
             result = research_session.workflow_gate_result(session)
@@ -817,9 +1024,7 @@ class ResearchSessionTests(unittest.TestCase):
                 "humanized_draft": "draft.md",
                 "evidence_final_audit": "final-audit.md",
             }
-            (session / artifacts["evidence_preoutline_audit"]).write_text(
-                "# Audit\n\nEvidence supports moving to outline.\n", encoding="utf-8"
-            )
+            self.write_audit_artifact(session, "evidence_preoutline_audit")
             self.complete_stage(
                 session,
                 "evidence_preoutline_audit",
@@ -832,11 +1037,8 @@ class ResearchSessionTests(unittest.TestCase):
 
             for stage in research_session.WORKFLOW_STAGE_NAMES[3:]:
                 artifact = session / artifacts[stage]
-                if stage == "insight_audit":
-                    artifact.write_text(
-                        "# Insight Audit\n\nStatus: pass\nOriginal contribution: A specific synthesis.\nStrongest conventional alternative: The dominant reading.\nCounterevidence: A material contrary example.\nRequired revisions: none\n",
-                        encoding="utf-8",
-                    )
+                if stage in research_session.AUDIT_STAGE_NAMES:
+                    self.write_audit_artifact(session, stage)
                 elif stage == "humanized_draft":
                     artifact.write_text(
                         "# Draft\n\nHumanized researched draft with preserved evidence.\n",
@@ -863,6 +1065,19 @@ class ResearchSessionTests(unittest.TestCase):
                 (session / "researched-draft.md").read_text(encoding="utf-8"),
                 (session / "draft.md").read_text(encoding="utf-8"),
             )
+            final_draft = session / "draft.md"
+            final_draft.write_text("# Revised draft\n\nSame evidence with a clearer explanation.\n", encoding="utf-8")
+            self.assertEqual(research_session.workflow_gate_result(session)["status"], "fail")
+            reopen = parser.parse_args([
+                "reopen-stage", "--session", str(session), "--stage", "evidence_final_audit",
+                "--note", "The final wording changed and must be checked again.",
+            ])
+            self.assertEqual(reopen.func(reopen), 0)
+            with self.assertRaisesRegex(SystemExit, "fingerprint"):
+                self.complete_stage(session, "evidence_final_audit", "Recheck the changed final wording against the original evidence.")
+            self.write_audit_artifact(session, "evidence_final_audit")
+            self.complete_stage(session, "evidence_final_audit", "Rechecked the changed final wording against the original evidence.")
+            self.assertEqual(research_session.workflow_gate_result(session)["status"], "pass")
             (session / "outline.md").write_text(
                 "# Outline\n\nChanged after the insight stage was recorded.\n",
                 encoding="utf-8",

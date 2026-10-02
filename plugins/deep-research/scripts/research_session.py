@@ -201,6 +201,12 @@ WORKFLOW_STAGES = [
 ]
 WORKFLOW_STAGE_BY_NAME = {stage["name"]: stage for stage in WORKFLOW_STAGES}
 WORKFLOW_STAGE_NAMES = [stage["name"] for stage in WORKFLOW_STAGES]
+AUDIT_STAGE_NAMES = {
+    stage["name"] for stage in WORKFLOW_STAGES if stage["skill"] == "evidence-auditor"
+}
+CLAIM_EVIDENCE_FIELDS = (
+    "evidence_note", "locator", "assumptions", "limitations", "support_type",
+)
 MUTABLE_WORKFLOW_ARTIFACT_STAGES = {
     "continuity_ready",
     "draft_complete",
@@ -269,6 +275,8 @@ def normalize_text(value: str) -> str:
 
 def canonicalize_url(url: str) -> str:
     parts = urlsplit(url.strip())
+    if parts.scheme == "file" and parts.path.startswith("/"):
+        return urlunsplit(("file", parts.netloc, parts.path, "", ""))
     if not parts.scheme or not parts.netloc:
         raise SystemExit(f"URL must include a scheme and host: {url}")
     query = []
@@ -403,19 +411,115 @@ def nonempty_markdown(path: Path) -> bool:
 def insight_audit_passes(path: Path) -> bool:
     content = path.read_text(encoding="utf-8") if path.exists() else ""
     required = (
-        "Original contribution",
-        "Strongest conventional alternative",
+        "Knowledge contribution",
+        "Strongest alternative",
         "Counterevidence",
+        "Judgment update",
         "Required revisions",
     )
-    return bool(re.search(r"(?im)^\s*(?:[-*]\s*)?Status\s*:\s*pass\s*$", content)) and all(
-        re.search(rf"(?im)^\s*(?:[-*]\s*)?{re.escape(field)}\s*:\s*\S", content)
-        for field in required
+    return audit_field(content, "Status") == "pass" and all(
+        audit_field(content, field) for field in required
     )
 
 
 def file_sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def audit_fingerprint(path: Path, stage_name: str, use_snapshot: bool = False) -> str:
+    """Bind an audit to its evidence and relevant inputs, not mutable stage bookkeeping."""
+    state = load_session(path)
+    context = {
+        key: state.get(key)
+        for key in (
+            "task_mode", "required_waves", "required_lanes", "must_cover",
+            "covered_items", "thresholds", "saturation",
+        )
+    }
+    names = [
+        "brief.md", "research-plan.md", "clarifications.jsonl", "queries.jsonl",
+        "sources.jsonl", "claims.jsonl", "gaps.jsonl", "textual-anchors.jsonl",
+    ]
+    if stage_name != "evidence_preoutline_audit":
+        context["planned_sections"] = state.get("planned_sections")
+        names.append("outline.md")
+    if stage_name in {"evidence_prehumanize_audit", "evidence_final_audit"}:
+        names.extend(["draft.md", "visuals.md", "style-sheet.md"])
+        figures = path / "figures"
+        if figures.exists():
+            names.extend(
+                str(item.relative_to(path))
+                for item in sorted(figures.rglob("*"))
+                if item.is_file()
+            )
+    if stage_name == "evidence_final_audit":
+        names.append("researched-draft.md")
+    context["files"] = {
+        name: file_sha256(path / name) if (path / name).is_file() else None
+        for name in names
+    }
+    if stage_name == "evidence_preoutline_audit":
+        # Assigning sections after the research audit does not change its evidence.
+        context["files"].pop("claims.jsonl")
+        context["claims"] = [
+            {key: value for key, value in claim.items() if key not in {"section", "updated_at"}}
+            for claim in read_jsonl(path / "claims.jsonl")
+        ]
+    if use_snapshot and stage_name == "evidence_prehumanize_audit":
+        snapshot = path / "researched-draft.md"
+        context["files"]["draft.md"] = file_sha256(snapshot) if snapshot.is_file() else None
+    payload = json.dumps(context, sort_keys=True, ensure_ascii=False).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
+def audit_field(content: str, field: str) -> str | None:
+    values = re.findall(rf"(?im)^\s*(?:[-*]\s*)?{re.escape(field)}:[ \t]*([^\r\n]*)$", content)
+    return values[0].strip() if len(values) == 1 else None
+
+
+def audit_errors(path: Path, stage_name: str, completed: bool = False) -> list[str]:
+    artifact = path / WORKFLOW_STAGE_BY_NAME[stage_name]["artifact"]
+    content = artifact.read_text(encoding="utf-8") if artifact.exists() else ""
+    errors = []
+    if audit_field(content, "Status") != "pass":
+        errors.append("requires exactly one Status: pass")
+    if audit_field(content, "Required revisions") != "none":
+        errors.append("requires Required revisions: none after all blocking fixes")
+    expected_fingerprint = audit_fingerprint(path, stage_name, use_snapshot=completed)
+    if audit_field(content, "Input fingerprint") != expected_fingerprint:
+        errors.append("audit inputs changed or fingerprint missing; audit the current inputs again")
+    if stage_name == "insight_audit" and not insight_audit_passes(artifact):
+        errors.append("requires knowledge contribution, strongest alternative, counterevidence, and judgment update")
+    return errors
+
+
+def audit_context_command(args: argparse.Namespace) -> int:
+    path = session_dir(args.session)
+    print(f"Input fingerprint: {audit_fingerprint(path, args.stage)}")
+    print("Audit the current inputs; record Status and Required revisions in the audit artifact.")
+    return 0
+
+
+def reopen_stage_command(args: argparse.Namespace) -> int:
+    path = session_dir(args.session)
+    state = load_session(path)
+    if args.stage not in completed_stage_names(state):
+        raise SystemExit(f"Stage is not completed: {args.stage}")
+    if len(args.note.strip()) < 12:
+        raise SystemExit("Explain why this stage and its downstream stages need review.")
+    invalidate_workflow_from(state, args.stage)
+    save_session(path, state)
+    append_jsonl(
+        path / "stage-log.jsonl",
+        {
+            "event": "reopen",
+            "stage": args.stage,
+            "note": args.note.strip(),
+            "created_at": utc_now(),
+        },
+    )
+    print(f"Reopened {args.stage}; existing artifacts are preserved for revision.")
+    return 0
 
 
 def update_workflow_status(state: dict, evidence_status: str | None = None) -> None:
@@ -532,7 +636,7 @@ def init_command(args: argparse.Namespace) -> int:
 
     required_lanes = list(dict.fromkeys(args.required_lane or []))
     state = {
-        "schema_version": 2,
+        "schema_version": 3,
         "title": args.title,
         "task_mode": args.task_mode,
         "depth_profile": args.depth,
@@ -697,6 +801,7 @@ def add_source_command(args: argparse.Namespace) -> int:
         "canonical_url": canonical_url,
         "title": args.title.strip(),
         "publisher": args.publisher,
+        "origin": args.origin,
         "published_date": args.published_date,
         "lane": args.lane,
         "source_type": args.source_type,
@@ -745,6 +850,8 @@ def update_source_command(args: argparse.Namespace) -> int:
             record["unique_value"] = args.unique_value
         if args.independent is not None:
             record["independent"] = args.independent
+        if args.origin is not None:
+            record["origin"] = args.origin
         record["updated_at"] = utc_now()
         found = True
         break
@@ -776,6 +883,8 @@ def add_claim_command(args: argparse.Namespace) -> int:
         "contradiction": args.contradiction,
         "created_at": utc_now(),
     }
+    for field in CLAIM_EVIDENCE_FIELDS:
+        record[field] = getattr(args, field)
     append_jsonl(path / "claims.jsonl", record)
     invalidate_saturation(state)
     invalidate_workflow_from(state, "evidence_preoutline_audit")
@@ -809,6 +918,10 @@ def update_claim_command(args: argparse.Namespace) -> int:
             record["section"] = args.section
         if args.contradiction is not None:
             record["contradiction"] = args.contradiction
+        for field in CLAIM_EVIDENCE_FIELDS:
+            value = getattr(args, field)
+            if value is not None:
+                record[field] = value
         record["updated_at"] = utc_now()
         found = True
         break
@@ -825,6 +938,7 @@ def update_claim_command(args: argparse.Namespace) -> int:
             args.source_id,
             args.anchor_id,
             args.contradiction,
+            *(getattr(args, field) for field in CLAIM_EVIDENCE_FIELDS),
         )
     )
     if section_only:
@@ -1013,6 +1127,14 @@ def gate_result(path: Path) -> dict:
     actions: list[str] = []
     warnings: list[str] = []
     thresholds = state["thresholds"]
+    question_driven = state.get("schema_version", 1) >= 3
+
+    def effort_issue(message: str, action: str) -> None:
+        if question_driven:
+            warnings.append(f"Research effort review: {message}. Justify coverage and corpus limits; do not pad counts.")
+        else:
+            reasons.append(message)
+            actions.append(action)
 
     missing_waves = [
         wave for wave in state["required_waves"] if wave not in state["completed_waves"]
@@ -1024,10 +1146,10 @@ def gate_result(path: Path) -> dict:
     executed_queries = [query for query in queries if query.get("status") == "executed"]
     minimum_executed_queries = thresholds.get("min_executed_queries", 0)
     if len(executed_queries) < minimum_executed_queries:
-        reasons.append(
-            f"Executed queries {len(executed_queries)}/{minimum_executed_queries}"
+        effort_issue(
+            f"Executed queries {len(executed_queries)}/{minimum_executed_queries}",
+            "Run more targeted searches across the required waves",
         )
-        actions.append("Run more targeted searches across the required waves")
 
     minimum_queries_per_wave = thresholds.get("min_queries_per_wave", 0)
     undersearched_waves = []
@@ -1036,8 +1158,10 @@ def gate_result(path: Path) -> dict:
         if wave_query_count < minimum_queries_per_wave:
             undersearched_waves.append(f"{wave} {wave_query_count}/{minimum_queries_per_wave}")
     if undersearched_waves:
-        reasons.append(f"Under-researched waves: {', '.join(undersearched_waves)}")
-        actions.append("Meet the minimum query depth in every required wave")
+        effort_issue(
+            f"Under-researched waves: {', '.join(undersearched_waves)}",
+            "Meet the minimum query depth in every required wave",
+        )
 
     opened_sources = [
         source
@@ -1057,20 +1181,20 @@ def gate_result(path: Path) -> dict:
     ]
     qualified_source_units = round(sum(source_units(source) for source in qualified_sources), 2)
     if len(qualified_sources) < thresholds["min_opened_sources"]:
-        reasons.append(
+        effort_issue(
             "Qualified usable sources "
-            f"{len(qualified_sources)}/{thresholds['min_opened_sources']}"
+            f"{len(qualified_sources)}/{thresholds['min_opened_sources']}",
+            "Add high-quality, deep-read, independent, authoritative, or uniquely valuable sources",
         )
-        actions.append("Add high-quality, deep-read, independent, authoritative, or uniquely valuable sources")
 
     minimum_source_units = thresholds.get(
         "min_source_units", float(thresholds["min_opened_sources"])
     )
     if qualified_source_units < minimum_source_units:
-        reasons.append(
-            f"Qualified source units {qualified_source_units}/{minimum_source_units}"
+        effort_issue(
+            f"Qualified source units {qualified_source_units}/{minimum_source_units}",
+            "Add deeper or more authoritative sources with material evidence value",
         )
-        actions.append("Add deeper or more authoritative sources with material evidence value")
 
     target_opened_sources = thresholds.get("target_opened_sources", thresholds["min_opened_sources"])
     target_source_units = thresholds.get("target_source_units", float(target_opened_sources))
@@ -1115,18 +1239,18 @@ def gate_result(path: Path) -> dict:
         if source.get("canonical_url")
     }
     if len(domains) < thresholds["min_unique_domains"]:
-        reasons.append(
-            f"Unique source domains {len(domains)}/{thresholds['min_unique_domains']}"
+        effort_issue(
+            f"Unique source domains {len(domains)}/{thresholds['min_unique_domains']}",
+            "Diversify source domains",
         )
-        actions.append("Diversify source domains")
 
     independent_sources = [source for source in qualified_sources if source.get("independent")]
     minimum_independent_sources = thresholds.get("min_independent_sources", 0)
     if len(independent_sources) < minimum_independent_sources:
-        reasons.append(
-            f"Independent sources {len(independent_sources)}/{minimum_independent_sources}"
+        effort_issue(
+            f"Independent sources {len(independent_sources)}/{minimum_independent_sources}",
+            "Add more independently produced sources",
         )
-        actions.append("Add more independently produced sources")
 
     authoritative_sources = [
         source
@@ -1135,16 +1259,18 @@ def gate_result(path: Path) -> dict:
     ]
     minimum_authoritative_sources = thresholds.get("min_authoritative_sources", 0)
     if len(authoritative_sources) < minimum_authoritative_sources:
-        reasons.append(
-            f"Authoritative sources {len(authoritative_sources)}/{minimum_authoritative_sources}"
+        effort_issue(
+            f"Authoritative sources {len(authoritative_sources)}/{minimum_authoritative_sources}",
+            "Add primary, official, academic, filing, or equivalent authority sources",
         )
-        actions.append("Add primary, official, academic, filing, or equivalent authority sources")
 
     covered_lanes = {source.get("lane") for source in qualified_sources if source.get("lane")}
     minimum_covered_lanes = thresholds.get("min_covered_lanes", 0)
     if len(covered_lanes) < minimum_covered_lanes:
-        reasons.append(f"Covered source lanes {len(covered_lanes)}/{minimum_covered_lanes}")
-        actions.append("Expand research into additional source lanes")
+        effort_issue(
+            f"Covered source lanes {len(covered_lanes)}/{minimum_covered_lanes}",
+            "Expand research into additional source lanes",
+        )
 
     missing_lanes = [lane for lane in state["required_lanes"] if lane not in covered_lanes]
     if missing_lanes:
@@ -1163,16 +1289,31 @@ def gate_result(path: Path) -> dict:
         if qualified_sources and count / len(qualified_sources) > maximum_domain_share
     ]
     if concentrated_domains:
-        reasons.append(
+        effort_issue(
             "Source concentration exceeds domain-share limit: "
-            f"{', '.join(concentrated_domains)}"
+            f"{', '.join(concentrated_domains)}", "Reduce dependence on overrepresented domains",
         )
-        actions.append("Reduce dependence on overrepresented domains")
 
     usable_claims = [claim for claim in claims if claim.get("claim")]
     if len(usable_claims) < thresholds["min_claims"]:
-        reasons.append(f"Claims {len(usable_claims)}/{thresholds['min_claims']}")
-        actions.append("Add claim-level evidence entries")
+        effort_issue(
+            f"Claims {len(usable_claims)}/{thresholds['min_claims']}",
+            "Add claim-level evidence entries",
+        )
+    if question_driven and not usable_claims:
+        reasons.append("No claim-level evidence recorded")
+        actions.append("Record the findings that answer the core questions")
+    incomplete_major = [
+        claim["id"]
+        for claim in claims
+        if claim.get("major") and any(
+            not str(claim.get(field) or "").strip()
+            for field in ("evidence_note", "locator")
+        )
+    ]
+    if question_driven and incomplete_major:
+        reasons.append(f"Major claims lack evidence explanation or locator: {', '.join(incomplete_major)}")
+        actions.append("Explain what the evidence supports and where it can be checked")
 
     unsupported_major = [
         claim["id"]
@@ -1252,11 +1393,11 @@ def gate_result(path: Path) -> dict:
 
     failed_sources = [source for source in sources if source.get("status") == "failed"]
     if len(failed_sources) > state["budgets"]["max_failed_sources"]:
-        reasons.append(
+        effort_issue(
             f"Failed sources {len(failed_sources)} exceed budget "
-            f"{state['budgets']['max_failed_sources']}"
+            f"{state['budgets']['max_failed_sources']}",
+            "Change retrieval strategy or document blocked-source limitations",
         )
-        actions.append("Change retrieval strategy or document blocked-source limitations")
 
     if len(queries) > state["budgets"]["max_queries"]:
         reasons.append(
@@ -1265,8 +1406,13 @@ def gate_result(path: Path) -> dict:
 
     minimum_anchors = thresholds["min_textual_anchors"]
     if len(anchors) < minimum_anchors:
-        reasons.append(f"Textual anchors {len(anchors)}/{minimum_anchors}")
-        actions.append("Add primary-text close-reading anchors")
+        effort_issue(
+            f"Textual anchors {len(anchors)}/{minimum_anchors}",
+            "Add primary-text close-reading anchors",
+        )
+    if question_driven and state.get("task_mode") in CULTURAL_MODES and not anchors:
+        reasons.append("Literary or cultural research requires primary-text anchors")
+        actions.append("Record specific observations from the primary work")
 
     missing_section_evidence = []
     for section in state["planned_sections"]:
@@ -1296,6 +1442,11 @@ def gate_result(path: Path) -> dict:
         actions.append("Replace or independently verify suspicious-source claims")
 
     status = "pass" if not reasons else "fail"
+    recorded_origins = {
+        normalize_text(str(source["origin"]))
+        for source in qualified_sources
+        if source.get("origin")
+    }
     return {
         "status": status,
         "checked_at": utc_now(),
@@ -1313,6 +1464,7 @@ def gate_result(path: Path) -> dict:
             "saturation_status": saturation.get("status", "not_assessed"),
             "unique_domains": len(domains),
             "independent_sources": len(independent_sources),
+            "recorded_evidence_origins": len(recorded_origins),
             "authoritative_sources": len(authoritative_sources),
             "covered_lanes": sorted(covered_lanes),
             "claims": len(usable_claims),
@@ -1320,6 +1472,29 @@ def gate_result(path: Path) -> dict:
             "open_high_impact_gaps": len(open_high_gaps),
         },
     }
+
+
+def validate_opening_questions(
+    stage: str, clarifications: list[dict], skip_request: str | None
+) -> str:
+    waiver = (skip_request or "").strip()
+    if skip_request is not None and not waiver:
+        raise SystemExit("The explicit user request to skip questions must be non-empty.")
+    if waiver and stage != "brief_confirmed":
+        raise SystemExit("--skip-questions-request is valid only for brief_confirmed.")
+    if stage == "brief_confirmed" and not waiver:
+        answered = any(
+            str(record.get("question") or "").strip()
+            and str(record.get("answer") or "").strip()
+            for record in clarifications
+        )
+        if not answered:
+            raise SystemExit(
+                "Opening questions require actual user answers before brief_confirmed. "
+                "Record answers with add-clarification. Only an explicit user request "
+                "may waive intake via --skip-questions-request."
+            )
+    return waiver
 
 
 def complete_stage_command(args: argparse.Namespace) -> int:
@@ -1336,40 +1511,21 @@ def complete_stage_command(args: argparse.Namespace) -> int:
             f"'{expected}' using {expected_skill}."
         )
 
+    skip_request = validate_opening_questions(
+        args.stage,
+        read_jsonl(path / "clarifications.jsonl"),
+        args.skip_questions_request,
+    )
     stage = WORKFLOW_STAGE_BY_NAME[args.stage]
     artifact = path / stage["artifact"]
     if not nonempty_markdown(artifact):
         raise SystemExit(
             f"Workflow stage '{args.stage}' requires a substantive {stage['artifact']} artifact."
         )
-    if args.stage == "brief_confirmed":
-        clarifications = read_jsonl(path / "clarifications.jsonl")
-        if len(clarifications) < 3:
-            raise SystemExit(
-                "brief_confirmed requires at least 3 recorded clarifications."
-            )
-        dimensions = {
-            record.get("normalized_dimension")
-            or normalize_text(str(record.get("dimension", "")))
-            for record in clarifications
-            if str(record.get("dimension", "")).strip()
-        }
-        if len(dimensions) < 3:
-            raise SystemExit(
-                "brief_confirmed requires clarification questions from at least "
-                "3 distinct dimensions."
-            )
-        if not any(
-            record.get("question_form") == "open" for record in clarifications
-        ):
-            raise SystemExit(
-                "brief_confirmed requires at least 1 genuinely open clarification question."
-            )
-    if args.stage == "insight_audit" and not insight_audit_passes(artifact):
-        raise SystemExit(
-            "insight_audit requires Status: pass and completed originality, alternative, "
-            "counterevidence, and revision fields."
-        )
+    if args.stage in AUDIT_STAGE_NAMES:
+        errors = audit_errors(path, args.stage)
+        if errors:
+            raise SystemExit(f"{args.stage}: {'; '.join(errors)}")
 
     evidence = gate_result(path)
     if stage["requires_evidence_gate"] and evidence["status"] != "pass":
@@ -1404,6 +1560,8 @@ def complete_stage_command(args: argparse.Namespace) -> int:
         "note": note,
         "completed_at": utc_now(),
     }
+    if skip_request:
+        record["skip_questions_request"] = skip_request
     if args.stage == "evidence_final_audit":
         record["draft_sha256"] = file_sha256(path / "draft.md")
     if args.stage in {"evidence_prehumanize_audit", "evidence_final_audit"}:
@@ -1466,6 +1624,10 @@ def workflow_gate_result(path: Path) -> dict:
         stage = WORKFLOW_STAGE_BY_NAME.get(stage_name)
         if not stage:
             continue
+        if stage_name in AUDIT_STAGE_NAMES:
+            for error in audit_errors(path, stage_name, completed=True):
+                reasons.append(f"{stage_name}: {error}")
+                actions.append(f"Reopen {stage_name} with reopen-stage and audit its current inputs")
         artifact = path / stage["artifact"]
         if not nonempty_markdown(artifact):
             incomplete_artifacts.append(f"{stage_name}:{stage['artifact']}")
@@ -1484,7 +1646,7 @@ def workflow_gate_result(path: Path) -> dict:
         reasons.append(
             f"Stage artifacts changed after completion: {', '.join(changed_artifacts)}"
         )
-        actions.append("Re-run the affected companion skill and re-complete downstream stages")
+        actions.append("Use reopen-stage for the earliest changed stage, revise, then complete downstream stages")
 
     researched_draft = path / "researched-draft.md"
     prehumanize_records = [
@@ -1511,7 +1673,7 @@ def workflow_gate_result(path: Path) -> dict:
         final_draft_hash = final_records[-1].get("draft_sha256")
         if not final_draft_hash or final_draft_hash != file_sha256(path / "draft.md"):
             reasons.append("Draft changed after the final evidence audit")
-            actions.append("Run evidence-auditor again and re-complete evidence_final_audit")
+            actions.append("Use reopen-stage --stage evidence_final_audit, then audit the revised draft")
         final_researched_hash = final_records[-1].get("researched_draft_sha256")
         if (
             not researched_draft.exists()
@@ -1566,6 +1728,8 @@ def workflow_gate_command(args: argparse.Namespace) -> int:
         state["status"] = "complete"
     else:
         update_workflow_status(state, result["metrics"]["evidence_gate"])
+        if state["status"] == "complete":
+            state["status"] = "awaiting_reaudit"
     state["next_actions"] = result["next_actions"]
     save_session(path, state)
     print(json.dumps(result, ensure_ascii=False, indent=2))
@@ -1691,6 +1855,7 @@ def build_parser() -> argparse.ArgumentParser:
     source_parser.add_argument("--url", required=True)
     source_parser.add_argument("--title", required=True)
     source_parser.add_argument("--publisher")
+    source_parser.add_argument("--origin", help="Original evidence source shared by reports using the same data.")
     source_parser.add_argument("--published-date")
     source_parser.add_argument("--lane", required=True)
     source_parser.add_argument("--source-type", required=True)
@@ -1727,6 +1892,7 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
     )
     update_source_parser.add_argument("--relevance")
+    update_source_parser.add_argument("--origin")
     update_source_parser.add_argument("--quality", choices=("high", "medium", "low"))
     update_source_parser.add_argument(
         "--reading-depth", choices=("skim", "read", "deep")
@@ -1774,6 +1940,12 @@ def build_parser() -> argparse.ArgumentParser:
     update_claim_parser.add_argument("--anchor-id", action="append")
     update_claim_parser.add_argument("--section")
     update_claim_parser.add_argument("--contradiction")
+    for evidence_parser in (claim_parser, update_claim_parser):
+        evidence_parser.add_argument("--evidence-note", help="What the evidence supports and how the conclusion follows.")
+        evidence_parser.add_argument("--locator", help="Source ID with page, passage, table, timestamp, or other precise location.")
+        evidence_parser.add_argument("--assumptions")
+        evidence_parser.add_argument("--limitations")
+        evidence_parser.add_argument("--support-type", choices=("direct", "inference", "interpretation", "forecast"))
     update_claim_parser.set_defaults(func=update_claim_command)
     gap_parser = subparsers.add_parser("add-gap", help="Log an unresolved research gap.")
     gap_parser.add_argument("--session", required=True)
@@ -1831,7 +2003,22 @@ def build_parser() -> argparse.ArgumentParser:
     stage_parser.add_argument("--session", required=True)
     stage_parser.add_argument("--stage", choices=WORKFLOW_STAGE_NAMES, required=True)
     stage_parser.add_argument("--note", required=True)
+    stage_parser.add_argument(
+        "--skip-questions-request",
+        help="Exact explicit user request to skip opening questions; brief_confirmed only.",
+    )
     stage_parser.set_defaults(func=complete_stage_command)
+
+    context_parser = subparsers.add_parser("audit-context", help="Show the fingerprint for the current audit inputs.")
+    context_parser.add_argument("--session", required=True)
+    context_parser.add_argument("--stage", choices=sorted(AUDIT_STAGE_NAMES), required=True)
+    context_parser.set_defaults(func=audit_context_command)
+
+    reopen_parser = subparsers.add_parser("reopen-stage", help="Reopen a completed stage and invalidate downstream approvals.")
+    reopen_parser.add_argument("--session", required=True)
+    reopen_parser.add_argument("--stage", choices=WORKFLOW_STAGE_NAMES, required=True)
+    reopen_parser.add_argument("--note", required=True)
+    reopen_parser.set_defaults(func=reopen_stage_command)
 
     for command, help_text, func in (
         ("gate", "Run the hard evidence gate.", gate_command),

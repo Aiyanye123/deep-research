@@ -8,8 +8,8 @@ override `references/chinese-prose.md`.
 
 Do not alter a claim, qualification, citation, quotation, date, number, unit,
 technical term, textual anchor, or source boundary merely to remove a stylistic
-pattern. Protected material stays unchanged and factual drift returns to the
-evidence audit.
+pattern. Keep protected material accurate and check affected sources if meaning
+or factual boundaries change.
 
 ## High-Confidence Problems
 
@@ -47,10 +47,20 @@ Inspect rather than mechanically delete:
 - Uniform sentence length, repeated paragraph shapes, and mechanical transitions.
 - Decorative metaphors that move across several unrelated image systems.
 - Excessive hedging that obscures the actual uncertainty.
+- Chains of preemptive rebuttals and blanket disclaimers addressed to imagined
+  critics, rather than qualifications that change a particular conclusion.
+- Academic labels that replace analysis without explaining what they reveal
+  about the material. Useful concepts and required terminology can remain.
 
 Colons, dashes, contrast, first person, and repeated technical terms are not AI
 signals by themselves. Their purpose, frequency, and article type decide whether
 they need revision.
+
+Inspect the connected argument, not just a list of phrases. Repeated setup,
+concession, reversal, and closing verdict can remain mechanical after every
+individual sentence has been paraphrased. Reorganize related material, remove
+redundant conclusions, and let reasons develop across the passage. Useful contrast
+and occasional emphatic endings can remain; no fixed frequency limit is needed.
 
 ## Authenticity Without Fabrication
 
@@ -63,10 +73,14 @@ reading, interpretive risk, and engagement with counterreadings. For formal and
 technical work, accuracy, proportion, and clear uncertainty are sufficient human
 qualities.
 
-## Audit Loop
+## Useful Editing Moves
 
 1. Identify the pattern and the factual work the sentence is trying to do.
 2. Keep the fact, source role, and qualification.
-3. Rewrite only the unnecessary performance around them.
-4. Run `scripts/check_chinese_prose.py` with the article profile.
-5. Compare the result with `researched-draft.md` and restore any lost evidence.
+3. Rewrite unnecessary performance, including paragraph order and transitions
+   when they keep interrupting or restating the argument. Do not merely exchange
+   synonyms or intensify metaphors.
+4. Read the revised passage in context and check whether it is natural, concrete,
+   accurate, and informative. Rewrite structure where needed, not just vocabulary.
+5. Recheck affected facts and source boundaries. A checker can help with a
+   particular problem, but no checker run, paired drafts, or audit file is required.

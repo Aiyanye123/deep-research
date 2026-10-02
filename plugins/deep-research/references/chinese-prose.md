@@ -1,8 +1,9 @@
 # Chinese Prose Profiles
 
 Use this reference only for Chinese deliverables. It adapts material-driven,
-natural Chinese writing practices to Deep Research without replacing the brief,
-evidence gate, claim ledger, or citation audit.
+natural Chinese writing practices to Deep Research. Use it as guidance, not a
+required profile, ledger, or audit process. Final prose review and polishing
+are always required; separate management files are not.
 
 ## Priority
 
@@ -16,7 +17,10 @@ Apply rules in this order:
 Never sacrifice a fact, citation, quotation, technical term, or required format to
 make prose appear less machine-generated.
 
-## Select One Profile
+## Useful Writing Modes
+
+These describe tendencies, not compulsory labels. A work may mix them as the
+material requires. Avoid making every genre sound the same.
 
 ### `essayistic`
 
@@ -54,16 +58,15 @@ specifications, and documentation-like research.
 
 ## Material-Driven Writing
 
-Deep Research has already decided whether the evidence base is sufficient. At the
-writing stage, use the session rather than starting a second research workflow.
+Use the material and actual sources already collected. Research and writing can
+inform each other; follow a consequential gap when needed without restarting
+intake or creating a second formal workflow.
 
-- Ground each substantive paragraph in one or more claims, textual anchors,
-  sources, data points, examples, or explicitly marked reasoning steps.
-- A new paragraph must add a fact, observation, distinction, mechanism,
-  counterargument, consequence, or interpretive advance. Restating the previous
-  paragraph with new adjectives is not progress.
-- If a planned section lacks support, record a gap and return it to the research
-  workflow. Do not invent examples, scenes, consensus, quotations, or user
+- Let details, reasoning, and interpretation develop the subject. Passages can
+  build atmosphere, pacing, or ambiguity where the genre benefits; each paragraph
+  need not prove a registered claim. Remove repetition that adds no meaning.
+- If a consequential assertion lacks support, check the relevant source or
+  adjust the claim. Do not invent examples, scenes, consensus, quotations, or user
   experience, and do not silently shorten the requested deliverable.
 - In literary criticism, let specific scenes, formal features, dialogue, editing,
   framing, sound, omissions, or textual contrasts support interpretation.
@@ -86,6 +89,33 @@ research action, but it must not create false firsthand authority.
 
 ## Build Natural Movement
 
+- Let a connected thought develop across paragraphs. Related observations,
+  source material, and interpretation can stay together until their relation is
+  clear. Break paragraphs when focus or pace calls for it; avoid both scattered
+  verdicts and uniformly long blocks.
+- Do not repeatedly use the same paragraph sequence of overview, concession,
+  correction, and closing maxim. A useful judgment may deserve emphasis, but
+  every paragraph need not produce a quotable line or summarize itself.
+- State actual distinctions and explain their consequences. Repeatedly setting
+  up a simplified opposing view and correcting it can conceal how little the
+  reasoning has advanced. Replacing the connective does not fix that structure.
+- Remove defensive padding aimed at imagined objections. Keep necessary limits
+  beside the claims they affect and explain how they change the conclusion.
+  Direct judgment still needs its actual uncertainty and competing evidence.
+- Use a theoretical concept when it helps explain an action, relationship,
+  conflict, or mechanism. Make the connection clear in language the reader can
+  follow. Replace labels that merely rename observations with the actual analysis;
+  preserve exact definitions and terms needed for academic or technical work.
+- In essays and criticism, sustain an attentive speaking position: what is
+  noticed, how the experience develops, and why the response changes. Use
+  supported particulars instead of repeatedly naming abstract emotion or depth.
+  Let emotional movement follow discoveries in the material; do not impose a
+  crescendo or moral verdict. Formal and technical writing can remain restrained
+  and precise.
+- Introduce a source where it contributes to the explanation. Attribution,
+  material, and judgment can form continuous prose; citations may move with the
+  supported claims. Keep evidence boundaries while avoiding a new source-summary
+  and mini-verdict for every example.
 - Reach the subject quickly. Avoid announcing the article structure unless the
   article type requires an abstract, executive summary, or methods overview.
 - Put the actor, action, claim, or observed feature early enough that the reader
@@ -118,6 +148,21 @@ global errors. Judge their frequency and function under the selected profile.
 
 ## Rewrite Rules
 
+- Prioritize natural, concrete, accurate Chinese. Use precise verbs, meaningful
+  details, and judgments with reasons. Language should serve the content.
+- Replace empty praise such as "很高级" or "很有感觉" with the observable
+  feature, action, contrast, or effect that supports the judgment. Use actual
+  material; do not invent a detail to make a sentence sound concrete.
+- Cut stock phrases, bureaucratic voice, business jargon, invented labels, and
+  degree adverbs that add no information. Rhetoric, abstractions, and grand
+  evaluations must not substitute for explaining the subject.
+- Let sentence length vary naturally. A long sentence should serve narrative,
+  rhythm, or argument with a clear internal relation. Revise overloaded syntax
+  rather than mechanically breaking every sentence into short statements.
+- Polish substantially where needed: rewrite sentences, paragraphs, and
+  transitions, remove redundant explanations, and improve the order of material.
+  A few synonym substitutions do not constitute a full prose review. Preserve
+  intellectual complexity, the requested length, and productive literary language.
 - Replace inflated significance and promotional claims with the specific fact or
   consequence that justifies them.
 - Replace vague authority with a named source, institution, document, date, or a
@@ -133,9 +178,17 @@ global errors. Judge their frequency and function under the selected profile.
 - Preserve counterarguments, qualifications, and inconvenient evidence. Natural
   prose is not permission to make the thesis cleaner than the research.
 
-## Handoff
+## Final Reading
 
-After rewriting, run `scripts/check_chinese_prose.py` with the selected profile.
-Warnings require judgment, not automatic deletion. Then compare `draft.md` with
-`researched-draft.md` and hand both to `evidence-auditor` for the final factual
-drift review.
+Read the whole completed text and polish before delivery. Check the passage and
+its connections for a limited edit. Revisit facts or source boundaries affected
+by substantive changes. The Chinese checker may help diagnose a specific issue;
+it is optional, and warnings require judgment. No paired drafts, handoff artifact,
+or separate factual-drift certificate is required.
+
+Read paragraph endings and transitions together to hear repeated closures,
+reversals, and reannouncements of the thesis. Revise the connected passage when
+that pattern flattens its movement. Do not create a new quota for sentence forms,
+metaphors, paragraph lengths, or ending types. When learning from a user sample,
+transfer its handling of viewpoint and development, not its conspicuous wording,
+added intensity, or unverified detail.

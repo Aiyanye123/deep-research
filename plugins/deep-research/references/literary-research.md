@@ -3,11 +3,13 @@
 Literary criticism must be grounded in the primary work, not only in online
 commentary about it.
 
-## Primary-Text Ledger
+## Attention To The Work
 
-Record scenes, passages, chapters, episodes, timestamps, dialogue, framing,
-editing, music, motifs, omissions, pacing, and repeated structures with
-`research_session.py add-anchor`.
+Attend to scenes, passages, chapters, episodes, dialogue, framing, editing, music,
+motifs, omissions, pacing, and repeated structures where they illuminate the
+question. Keep page or scene locations when useful; no per-detail ledger is
+required. Wider connections and interpretive intuitions can guide reading before
+their implications are settled.
 
 Separate:
 
@@ -16,16 +18,20 @@ Separate:
 - Alternative reading: another plausible explanation.
 - Context: what external sources add.
 
-## Originality Audit
+## Interpretive Contribution
 
-Before selecting the thesis:
+Before choosing a central reading:
 
-1. Name the dominant existing interpretations.
-2. Reject thesis candidates that merely restate them.
-3. Identify primary-text anchors that make the chosen reading specific.
-4. State the strongest counterreading.
-5. State what evidence would weaken or falsify the thesis.
-6. Explain why the reading matters to the intended reader.
+1. Identify relevant established readings when they help locate the question.
+2. Find anchors that make the account specific to this work.
+3. Describe the knowledge contribution. It may refine a known reading, connect details that are usually treated separately, establish the limits of an interpretation, or explain what the evidence leaves unknown.
+4. Consider other readings when they enrich the question, and let complicating details change the account. No separate judgment-update form is required.
+5. Explain why the reading matters to the intended reader without claiming novelty that the research has not established.
 
-The final article may use existing criticism as context, but its central argument
-must remain the author's own synthesis.
+Do not force a single interpretation where the work sustains several. A section may
+begin with a detail, scene, or question and let its implications emerge across the
+essay; every section need not follow a claim-evidence-counterclaim template.
+
+The final article may use existing criticism as context and may conclude that a
+question remains open. Distinguish textual observation, interpretation, and
+external context throughout.

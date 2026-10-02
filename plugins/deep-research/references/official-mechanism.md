@@ -1,6 +1,7 @@
 # Official Mechanism Notes
 
-This note records the public mechanism this plugin preserves.
+This note records public descriptions that informed the plugin. They are not a
+required internal architecture for this local workflow.
 
 OpenAI documentation describes ChatGPT Deep Research as a three-step process:
 
@@ -22,23 +23,13 @@ Implementation boundary:
 
 - This plugin is a workflow wrapper for Codex.
 - It does not reproduce private ChatGPT product code, hidden prompts, entitlement behavior, or internal orchestration.
-- It intentionally implements only the documented interaction pattern.
+- Its opening inquiry and research choices are locally authored; they may go
+  beyond the public interaction description without claiming access to private code.
 
-## Product Behavior Observation
+## Local Interaction Choices
 
-The useful older interaction pattern was not only "search more sources." It was a brief negotiation:
-
-1. The user gave a draft intent.
-2. The assistant asked about style, article type, spoiler/detail level, target audience, and focus.
-3. The user answered.
-4. The assistant confirmed the article shape in natural language.
-5. Research and writing started from that confirmed shape.
-
-The weaker newer task-card pattern is:
-
-1. The user gives a short topic.
-2. The system creates a generic task list.
-3. The user can edit or start.
-4. Research proceeds with inferred assumptions.
-
-For long-form writing, the plugin should prefer the older brief negotiation pattern.
+Opening questions are required unless explicitly waived. They help discover
+deeper assumptions and wider directions as well as clarify practical constraints.
+Wait for answers, briefly confirm the chosen direction, and then research and
+write with judgment. No fixed negotiation rounds or task-card sequence is required.
+Every completed written deliverable receives a final prose review and polish.

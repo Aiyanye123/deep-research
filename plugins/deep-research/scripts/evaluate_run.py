@@ -1,30 +1,94 @@
 #!/usr/bin/env python3
-"""Score the structural quality of a completed Deep Research session."""
+"""Report structural checks and activity metrics for a Deep Research session."""
 
 from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
-from urllib.parse import urlsplit
+
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
+
+import research_session
+
+
+DEFAULT_RUBRIC = {
+    "task_type": "General research",
+    "criteria": [
+        "Check that the report answers the confirmed research question and respects the requested scope and format.",
+        "Check whether important facts and arguments are represented accurately and with enough context.",
+        "Check that the evidence directly supports the claims, and that important claims use suitable independent sources.",
+        "Check for synthesis, counterevidence, uncertainty, and conclusions that follow from the evidence.",
+        "Check whether the contribution is useful and supported; confirming a consensus, clarifying its limits, or establishing an unknown can qualify.",
+        "Check whether the structure, continuity, and prose fit the intended reader and deliverable.",
+    ],
+}
+
+TASK_MODE_RUBRICS = {
+    "literary_or_cultural_criticism": {
+        "task_type": "Literary or cultural criticism",
+        "modes": ["literary_criticism", "cultural_criticism", "review"],
+        "criteria": [
+            "Check whether the interpretive question, observation, or thesis is specific and responsive to the requested work and angle.",
+            "Check that interpretations rest on precise passages, scenes, formal choices, or other primary evidence.",
+            "Check whether the report connects close reading to context without treating context as proof by itself.",
+            "Where applicable, check plausible alternative readings and details that complicate the interpretation, without forcing false balance or novelty.",
+            "Check that fact, inference, and uncertainty remain distinct, and that the conclusion advances beyond plot or source summary.",
+        ],
+    },
+    "academic_literature_review": {
+        "task_type": "Academic literature review",
+        "modes": ["academic", "academic_literature_review", "literature_review"],
+        "criteria": [
+            "Check whether the review defines a focused question, field boundary, and relevant time or method limits.",
+            "Check whether coverage represents the important theories, methods, evidence, and disagreements rather than a paper-by-paper list.",
+            "Compare study designs, populations, measures, and limitations before combining findings.",
+            "Check whether the synthesis explains agreement, disagreement, uncertainty, and evidence gaps.",
+            "Check citation accuracy and whether the stated contribution or research gap follows from the reviewed literature.",
+        ],
+    },
+    "market_or_company_research": {
+        "task_type": "Market or company research",
+        "modes": ["market_research", "company_research", "market_or_company_research"],
+        "criteria": [
+            "Check that the market, geography, customer segment, time period, and decision question are defined consistently.",
+            "Check important market-size, growth, financial, and operating claims against traceable source data and stated definitions.",
+            "Check whether primary company disclosures and independent market evidence are distinguished and compared.",
+            "Check competitors, demand drivers, constraints, counterevidence, and material risks rather than relying on a single growth story.",
+            "Check that assumptions, scenarios, and recommendations are explicit and proportionate to the evidence.",
+        ],
+    },
+    "technical_research": {
+        "task_type": "Technical research",
+        "modes": ["technical_research", "technical_briefing", "policy_brief", "policy_or_technical_briefing"],
+        "criteria": [
+            "Check whether the problem, system boundary, users, operating context, and decision are clearly defined.",
+            "Check technical or policy claims against relevant primary documentation, standards, data, or direct evidence.",
+            "Check whether the report explains mechanisms and dependencies rather than listing features or rules.",
+            "Check failure cases, trade-offs, counterevidence, security or implementation constraints, and unresolved uncertainty.",
+            "Check whether recommendations are feasible in the stated context and supported by the analysis.",
+        ],
+    },
+    "factual_investigation": {
+        "task_type": "Factual investigation or explanation",
+        "modes": ["factual_investigation", "factual_research", "explanatory_article"],
+        "criteria": [
+            "Check whether the factual question, time frame, and included events are clearly bounded.",
+            "Trace central claims to original records; distinguish independent corroboration from repeated reporting.",
+            "Check chronology and conflicting accounts without treating temporal succession as causation.",
+            "Separate established facts, witness or institutional claims, inference, and unknowns.",
+            "Check whether the explanation answers the question and states what missing evidence could change it.",
+        ],
+    },
+}
 
 
 def read_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
-
-
-def read_json_optional(path: Path) -> dict:
-    return read_json(path) if path.exists() else {}
-
-
-def read_jsonl(path: Path) -> list[dict]:
-    if not path.exists():
-        return []
-    return [
-        json.loads(line)
-        for line in path.read_text(encoding="utf-8").splitlines()
-        if line.strip()
-    ]
 
 
 def nonempty_markdown(path: Path) -> bool:
@@ -35,144 +99,63 @@ def nonempty_markdown(path: Path) -> bool:
     return bool(body)
 
 
-def bounded_score(value: float) -> int:
-    return max(0, min(100, round(value)))
+def qualitative_rubric(task_mode: str) -> dict:
+    for rubric in TASK_MODE_RUBRICS.values():
+        if task_mode in rubric["modes"]:
+            return {
+                "task_type": rubric["task_type"],
+                "criteria": rubric["criteria"],
+            }
+    return DEFAULT_RUBRIC
 
 
-def source_units(source: dict, authoritative_types: set[str]) -> float:
-    units = 1.0
-    if source.get("quality") == "high":
-        units += 0.5
-    if source.get("reading_depth") == "deep":
-        units += 0.5
-    if source.get("source_type") in authoritative_types:
-        units += 0.5
-    if source.get("unique_value"):
-        units += 0.5
-    if source.get("independent"):
-        units += 0.25
-    return min(units, 2.5)
+def current_gate_status(result: dict) -> dict:
+    return {
+        "status": result["status"],
+        "reasons": result.get("reasons", []),
+        "warnings": result.get("warnings", []),
+        "next_actions": result.get("next_actions", []),
+    }
 
 
 def evaluate(session: Path) -> dict:
     state = read_json(session / "session.json")
-    audit = read_json(session / "audit.json")
-    workflow_audit = read_json_optional(session / "workflow-audit.json")
-    sources = read_jsonl(session / "sources.jsonl")
-    claims = read_jsonl(session / "claims.jsonl")
-    gaps = read_jsonl(session / "gaps.jsonl")
-    anchors = read_jsonl(session / "textual-anchors.jsonl")
 
-    opened = [source for source in sources if source.get("opened") and source.get("status") == "usable"]
-    authoritative_types = {
-        "primary",
-        "primary_text",
-        "official",
-        "academic",
-        "filing",
-        "regulation",
-        "standard",
-        "case_law",
-        "direct_text",
-    }
-    qualified = [
-        source
-        for source in opened
-        if source.get("quality", "medium") != "low"
-        and (
-            source.get("independent")
-            or source.get("unique_value")
-            or source.get("reading_depth") == "deep"
-            or source.get("source_type") in authoritative_types
-        )
-    ]
-    qualified_units = sum(source_units(source, authoritative_types) for source in qualified)
-    domains = {
-        urlsplit(source.get("canonical_url", "")).netloc
-        for source in qualified
-        if urlsplit(source.get("canonical_url", "")).netloc
-    }
-    grounded_claims = [
-        claim for claim in claims if claim.get("source_ids") or claim.get("anchor_ids")
-    ]
-    major_claims = [claim for claim in claims if claim.get("major")]
-    grounded_major = [
-        claim for claim in major_claims if claim.get("source_ids") or claim.get("anchor_ids")
-    ]
-    open_high_gaps = [
-        gap for gap in gaps if gap.get("impact") == "high" and gap.get("status") != "resolved"
-    ]
-    workflow = state.get("workflow", {})
-    required_stages = workflow.get("required_stages", [])
-    completed_stages = {
-        record.get("stage") for record in workflow.get("completed", []) if record.get("stage")
+    # Read the gates from session state and artifacts on every run. Persisted audit
+    # files are historical records and can be stale.
+    evidence_gate = research_session.gate_result(session)
+    workflow_gate = research_session.workflow_gate_result(session)
+
+    task_mode = state.get("task_mode", "general_research")
+    artifact_paths = {
+        "brief": session / "brief.md",
+        "outline": session / "outline.md",
+        "insight_audit": session / "insight-audit.md",
+        "researched_draft": session / "researched-draft.md",
+        "draft": session / "draft.md",
+        "continuity": session / "continuity.md",
     }
 
-    coverage = bounded_score(
-        40 * len(state.get("completed_waves", [])) / max(1, len(state.get("required_waves", [])))
-        + 20 * len(qualified) / max(1, state["thresholds"]["min_opened_sources"])
-        + 15 * qualified_units / max(1, state["thresholds"].get("min_source_units", 1))
-        + 15 * len(qualified) / max(1, state["thresholds"].get("target_opened_sources", 1))
-        + 10 * qualified_units / max(1, state["thresholds"].get("target_source_units", 1))
-    )
-    source_quality = bounded_score(
-        50 * len(domains) / max(1, state["thresholds"]["min_unique_domains"])
-        + 30 * sum(bool(source.get("independent")) for source in qualified) / max(1, len(qualified))
-        + 20 * sum(source.get("source_type") in authoritative_types for source in qualified)
-        / max(1, len(qualified))
-    )
-    grounding = bounded_score(
-        70 * len(grounded_claims) / max(1, len(claims))
-        + 30 * len(grounded_major) / max(1, len(major_claims))
-    )
-    analysis = bounded_score(
-        50 * len(anchors) / max(1, state["thresholds"].get("min_textual_anchors", 0) or 1)
-        + 25 * sum(claim.get("kind") == "interpretation" for claim in claims) / max(1, len(claims))
-        + 25 * sum(bool(claim.get("contradiction")) for claim in claims) / max(1, len(claims))
-    )
-    presentation = bounded_score(
-        25 * nonempty_markdown(session / "brief.md")
-        + 25 * nonempty_markdown(session / "outline.md")
-        + 25 * nonempty_markdown(session / "draft.md")
-        + 25 * nonempty_markdown(session / "continuity.md")
-    )
-    reliability = bounded_score(
-        70 * (audit.get("status") == "pass")
-        + 30 * (len(open_high_gaps) == 0)
-    )
-    workflow_integrity = bounded_score(
-        70 * len(completed_stages) / max(1, len(required_stages))
-        + 30 * (workflow_audit.get("status") == "pass")
-    )
-
-    dimensions = {
-        "research_coverage": coverage,
-        "source_quality_and_diversity": source_quality,
-        "claim_grounding": grounding,
-        "analysis_and_originality_structure": analysis,
-        "presentation_and_longform_state": presentation,
-        "reliability": reliability,
-        "workflow_integrity": workflow_integrity,
-    }
-    overall = round(sum(dimensions.values()) / len(dimensions), 1)
     return {
         "session": str(session),
-        "overall": overall,
-        "dimensions": dimensions,
-        "warnings": [
-            warning
-            for warning, condition in (
-                ("Evidence gate has not passed.", audit.get("status") != "pass"),
-                ("Full seven-skill workflow gate has not passed.", workflow_audit.get("status") != "pass"),
-                ("High-impact gaps remain open.", bool(open_high_gaps)),
-                ("Independent insight audit is missing.", not nonempty_markdown(session / "insight-audit.md")),
-                ("Pre-humanize researched draft snapshot is missing.", not nonempty_markdown(session / "researched-draft.md")),
-                ("Draft is empty.", not nonempty_markdown(session / "draft.md")),
-                ("No textual anchors recorded.", not anchors and state.get("task_mode") in {"cultural_criticism", "literary_criticism", "review"}),
-            )
-            if condition
-        ],
-        "note": "This deterministic evaluator checks structure and provenance, not semantic prose quality.",
+        "structural_checks": {
+            "evidence_gate": current_gate_status(evidence_gate),
+            "workflow_gate": current_gate_status(workflow_gate),
+            "report_artifacts_nonempty": {
+                name: nonempty_markdown(path) for name, path in artifact_paths.items()
+            },
+        },
+        "research_review_required": True,
+        "qualitative_rubric": qualitative_rubric(task_mode),
+        "activity_metrics": {
+            "task_mode": task_mode,
+            "evidence_gate": evidence_gate.get("metrics", {}),
+            "workflow_gate": workflow_gate.get("metrics", {}),
+        },
+        "note": (
+            "Structural checks and activity counts do not establish research quality. "
+            "Complete the qualitative review against the task-specific rubric."
+        ),
     }
 
 

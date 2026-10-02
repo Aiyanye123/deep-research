@@ -1,103 +1,91 @@
 ---
 name: insight-architect
-description: Use when Deep Research needs original insight, interpretive synthesis, thesis design, counterreadings, long-form outline architecture, section sequence, and evidence assignment.
+description: Use when Deep Research needs deeper interpretation, original connections, thesis development, competing readings, synthesis, or a structure suited to the material.
 ---
 
 # Insight Architect
 
-## Purpose
+Find what the material helps us understand and shape a work that develops it.
+Use during exploratory thinking, research, outlining, or revision when helpful.
+There is no evidence-gate prerequisite for forming ideas or tentative structures.
 
-Create the argument and structure. This skill merges interpretive synthesis and outline architecture so the article is not just a mechanical compilation of research.
+The lead retains central synthesis and initial organization. A subagent may
+explore an alternative reading with source access, or perform the completed
+manuscript's structural review. In the complete workflow, assign that review to
+a subagent under `deep-research`'s division of labor. Read the complete current
+text, user purpose and constraints, and relevant source context. Identify material
+issues in focus, development, proportion, ordering, continuity, repetition, and
+source integration; propose changes with locations and reasons. Preserve original
+thinking, voice, purposeful ambiguity, and useful irregularities. Return review
+advice, not a rewritten or language-polished manuscript. The lead selects and
+implements revisions; no independent review file or problem quota is required.
 
-Use after the evidence base exists and before drafting.
+## Developing Understanding
 
-Require a passing persistent evidence gate before building the final outline.
-Require a completed `evidence_preoutline_audit` stage. Write the architecture and
-section cards to `outline.md`, add every planned section to the session, assign
-claim evidence, and run the evidence gate again. Hand the finished outline to
-`evidence-auditor` for the independent insight audit. After that audit passes,
-record `insight_outline`; the auditor then records `insight_audit`.
+Start with the question and the broader directions chosen with the user. Move
+between close observation and larger explanations. Question premises, compare
+contexts, change the level of analysis, and look for what prevailing accounts
+leave unexplained. Follow an unexpected connection when it illuminates the topic.
 
-## Output
+For literary and cultural work, attend to images, scenes, voice, form, sequence,
+omissions, character logic, production context, and reception as relevant.
+Read what the work does as well as what it says. Context enriches a reading but
+does not substitute for textual fit. Preserve details that resist the thesis.
 
-Produce:
+For other work, seek mechanisms, relationships, conceptual distinctions, and
+trade-offs. Compare what apparently conflicting evidence actually measures or
+explains. Make the gain in understanding concrete.
 
-```text
-Insight architecture:
+Choose concepts for what they reveal about the material. Test whether a framework
+explains a specific action, relationship, conflict, or mechanism, rather than
+merely assigning it a learned label. Develop or revise the framework when details
+resist it. Explain useful concepts at the level the reader needs, preserving
+precise distinctions where the genre requires them.
 
-- Working title:
-- Task mode:
-- Primary question:
-- Core thesis:
-- Why this is not just a summary:
-- Supporting claims:
-- Textual or factual anchors:
-- Source context:
-- Tension or contradiction:
-- Counterreading:
-- Original insight candidates:
-- Chosen argument:
-- Claims to avoid:
-- Total target length:
-- Section sequence:
-- Word budget by section:
-- Evidence assigned by section:
-- Original insight placement:
-- Open research gaps:
-- Dominant existing interpretations:
-- Thesis candidates rejected as conventional:
-- Evidence that would weaken the chosen argument:
-```
+Ideas may begin as analogies, hypotheses, or intuitions. Develop and examine them
+rather than requiring a citation for the act of thinking. Factual claims need
+appropriate support, and conclusions must remain proportionate to their basis.
+Do not promote an appealing speculation to fact.
 
-For each section:
+A useful contribution can be an original connection, a more precise familiar
+reading, a reliable synthesis, a clearer boundary, or recognition that the answer
+is unknown. Do not force novelty, contrarianism, or an argumentative thesis onto
+every task.
 
-```text
-Section card:
+## Shaping The Work
 
-- Section title:
-- Target words:
-- Job of this section:
-- Main claim:
-- Interpretive job:
-- Evidence IDs:
-- Key examples:
-- Tone and rhythm:
-- What this section must not do:
-- Hand-off to next section:
-```
+Use an outline when it helps the explanation or the reader. Choose structure,
+sequence, and emphasis from the material and genre:
 
-## Original Insight Methods
+- An essay may develop through a scene, recurring detail, question, or unfolding
+  interpretation.
+- A report may organize around a decision, mechanisms, alternatives, and conditions.
+- A review may compare concepts, methods, schools, or findings.
+- A technical explanation may follow the problem, mechanism, trade-offs, and use.
 
-For literary or cultural work, use several:
+These are options, not prescribed section lists. Give each part a useful role.
+Give central developments and decisive material room to unfold; keep supporting
+context and qualifications proportionate to their role. A coherent interpretation
+need not give every conceivable objection or aspect equal space. Choose what the
+reader needs to see to understand how the central judgment develops.
+Do not impose a generic five-part outline, a counterargument in every section,
+or a word budget and evidence-ID assignment for every paragraph.
 
-- Close reading: repeated images, scenes, metaphors, dialogue, visual composition, motifs, omissions, pacing.
-- Tension reading: what the work says versus what it structurally does.
-- Character logic: what a character wants, hides, repeats, misreads, or refuses to say.
-- Form reading: how structure, editing, music, framing, narration, or episode order creates meaning.
-- Context reading: production history, genre convention, community discourse, author statements, reception.
-- Contrast reading: compare official framing, fandom reading, review consensus, and the primary text.
-- Negative-space reading: what online discourse ignores but the text keeps returning to.
-- Stakes reading: why this interpretation matters to the intended reader.
+Plan the movement of a connected explanation, not a sequence of self-contained
+verdicts. An example should change or deepen the reader's understanding, not just
+illustrate the same thesis again. Let qualifications, contrasts, and conclusions
+arise where the reasoning needs them. Do not reserve a quotable maxim for the end
+of each paragraph or make every transition a dramatic correction.
+Build the structure around the inquiry, not a chain of defenses against imagined
+objections. Place genuine alternatives and limits where they change the reading.
+In essays, changes of feeling should follow discoveries and tensions in the
+material, rather than a prescribed emotional crescendo.
 
-## Structure Types
+Test the emerging interpretation against meaningful alternatives and awkward
+evidence. Reframe it where needed; a formal insight-audit document is not required.
+Keep uncertainty where it improves fidelity, without hedging every interpretive
+sentence or flattening the author's voice.
 
-Choose the structure that fits the brief:
-
-- Thesis essay: claim, evidence, counterpoint, synthesis.
-- Cultural criticism: hook, close reading, character/theme analysis, broader interpretation, ending resonance.
-- Market report: thesis, market map, company position, growth drivers, risks, scenarios, recommendation.
-- Literature review: field map, schools of thought, evidence comparison, gaps, research agenda.
-- Technical briefing: problem, architecture, constraints, tradeoffs, implementation, risks.
-- Narrative nonfiction: scene, context, analysis, tension, payoff.
-
-## Rules
-
-- Do not create a generic five-part outline unless it truly fits.
-- Do not outline literary criticism from source summaries alone.
-- A good thesis should be arguable, specific, and anchored in evidence.
-- Assign evidence before drafting.
-- Give each section a job. Avoid sections that merely repeat the title.
-- Include counterevidence or uncertainty where needed.
-- Match the article type and use context. Personal logs, public columns, investment memos, and academic reviews should not share the same structure.
-- For literary or cultural criticism, read `references/literary-research.md`, use
-  primary-text anchors, and stress-test the thesis against the strongest counterreading.
+For long or complex work, a short outline or section note can preserve continuity.
+No separate architecture form, section-card inventory, stage record, or approval
+gate is required. Let writing expose opportunities to change the structure.

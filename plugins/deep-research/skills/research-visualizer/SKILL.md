@@ -1,146 +1,84 @@
 ---
 name: research-visualizer
-description: Use when Deep Research must decide, design, generate, or audit charts, tables, diagrams, timelines, maps, statistical plots, or other evidence-based visual elements for academic papers, research reports, journals, policy work, market analysis, or technical documents.
+description: Use when a chart, table, diagram, timeline, map, or illustration can materially improve a research explanation or deliverable.
 ---
 
 # Research Visualizer
 
-Turn researched evidence into figures that clarify an argument. Do not add
-decorative charts or visualize data whose provenance, units, or transformations
-cannot be explained.
+Use a visual when it makes a relationship, comparison, process, or finding easier
+to understand. Choose it for the question and genre, not to complete a workflow
+stage. If prose already works well, continue without a figure or an explanation
+file about that decision. A visual manifest is useful only when managing several
+assets actually requires one.
 
-## Required Output
+The lead decides whether a visual helps, what question it answers, and its
+substantive data choices and interpretation. Delegate useful extraction,
+calculations under a stated method, rendering, formatting, and export under
+`deep-research`'s division of labor. Return the actual figure, source data or
+locations, and material transformations. The lead inspects the resulting figure
+and its fit with the prose; a verbal completion report is insufficient.
 
-Write the decision and figure manifest to `visuals.md`, then record
-`visualization_review` with `scripts/research_session.py complete-stage`.
+## Choose A Useful Form
 
-If no visual adds analytical value, write a substantive explanation covering the
-available data, rejected visual options, and why prose or a table is clearer. This
-still completes the review without manufacturing a figure.
+Prefer a simple form that answers a clear question. Tables suit exact values or
+heterogeneous measures; bars suit category comparisons; lines show change over
+ordered time; scatter plots show numeric relationships; distributions need an
+appropriate distribution plot. Use maps when geography matters, timelines for
+chronology, and diagrams for processes or defined relationships. Conceptual
+diagrams should identify proposed relationships without presenting them as
+measured findings.
 
-For every planned figure record:
+Do not add decorative charts or imply that association establishes causation.
+An illustration or editorial image can be useful for some articles; literary
+work may need no visual at all.
 
-```text
-Figure:
-- ID and filename:
-- Analytical question:
-- Figure type:
-- Generation method: data renderer, Mermaid, built-in image generation, or other tool
-- Generation prompt, when applicable:
-- Data file:
-- Source IDs:
-- Variables, units, period, geography, and population:
-- Transformations:
-- Uncertainty or missing-data treatment:
-- Caption:
-- Alt text:
-- Placement:
-- Status: planned, generated, checked, or rejected
-```
+## Data And Generation
 
-Store generated assets and their source data under `figures/`. Keep the cleaned
-CSV used to render each quantitative figure so another researcher can reproduce it.
+Build factual figures from source data, supplied datasets, or transparent
+calculations. Keep the data used for a quantitative figure together with its
+source, units, period, population or geography, and material transformations.
+Preserve original values when cleaning or transforming them. Explain filters,
+exclusions, normalization, rebasing, aggregation, missing values, and estimates
+where they affect interpretation. Do not silently mix incompatible series or
+invent missing observations. Use an available underlying table instead of
+digitizing an image when possible.
 
-## Choose The Visual
+Use existing plotting, spreadsheet, or document tools that fit the output. The
+bundled `scripts/render_chart.py` can render ordinary bar, line, and scatter
+charts from tidy CSV; it is optional and does not require a managed research
+session. Prefer scalable output when the document benefits from it. Mermaid is
+useful for a small process or relationship diagram when the target supports it;
+export a static asset when necessary.
 
-- Exact values or heterogeneous measures: table.
-- Category comparison: bar chart; sort when order is meaningful.
-- Change over ordered time: line chart.
-- Relationship between numeric variables: scatter plot; do not imply causation.
-- Distribution: histogram, density plot, box plot, or violin plot.
-- Part-to-whole: stacked bar; use pie or donut only for a few stable categories.
-- Two-dimensional magnitude: heatmap with an explicit scale.
-- Geographic pattern: map only when location is analytically relevant.
-- Process, mechanism, or decision path: Mermaid flowchart.
-- Chronology: timeline.
-- Relationships: network diagram only when nodes and edges have defined meaning.
-- Conceptual synthesis: model diagram whose arrows and labels state the proposed
-  relationship rather than presenting interpretation as measured fact.
-- Explanatory illustration, scientific concept image, editorial visual, cover, or
-  historically reconstructed scene: use Codex built-in image generation when a
-  generated bitmap communicates the idea better than a chart or diagram.
+For a generated bitmap, load the system `imagegen` skill and use the built-in
+`image_gen` tool. Describe the purpose, audience, factual constraints,
+composition, and intended placement, then inspect the result before using it.
+Retain the prompt when useful for later revisions, without requiring a separate
+manifest.
 
-Prefer the simplest visual that answers one analytical question. One figure may
-support several claims, but it should not attempt to tell the whole report.
+Never use image generation to fabricate a quantitative chart, empirical result,
+archival facsimile, documentary photograph, or another image readers could
+mistake for observed evidence. Label conceptual, reconstructed, or illustrative
+images accordingly and do not cite them as proof. Check generated labels;
+prefer SVG, Mermaid, or document-native text when exact wording matters.
 
-## Generation
+## Make It Readable And Honest
 
-For ordinary bar, line, and scatter charts from tidy CSV, use the bundled
-dependency-free renderer:
+Use readable labels, direct axis titles and units, a restrained accessible
+palette, and a caption that states the finding without overstating it. Do not
+rely on color alone. Avoid unexplained dual axes and 3D effects. Bar axes normally
+start at zero; disclose and justify an exception. Show material uncertainty,
+missingness, and breaks in a series. Include the source and author calculations
+near the figure and useful alternative text where the delivery format supports it.
 
-```powershell
-python <plugin-root>/scripts/render_chart.py `
-  --input <session>/figures/data.csv `
-  --output <session>/figures/figure-01.svg `
-  --type line `
-  --x year `
-  --y value `
-  --title "Measured value by year" `
-  --x-label "Year" `
-  --y-label "Value (unit)" `
-  --source-note "Source: S-0001; author's calculation."
-```
+Before delivery, compare values, labels, units, ordering, period, and caption with
+the source data. Check calculations and transformations in proportion to their
+complexity and consequence. Examine whether scale, area, aggregation, or omitted
+uncertainty could mislead. Open or render the final asset to check legibility at
+the intended size and that surrounding prose says no more than the data supports.
 
-Repeat `--y` for multiple series. Use SVG for scalable document output.
-
-For histograms, box plots, regression diagnostics, confidence intervals, maps,
-networks, or publication-specific formats, use an available spreadsheet,
-statistical, document, or plotting tool. Preserve the same manifest and audit
-requirements. Use Mermaid for process and relationship diagrams when the target
-format renders Mermaid; otherwise export a static image.
-
-For generated bitmap visuals, explicitly load the system `imagegen` skill and use
-the built-in `image_gen` tool by default. Shape the prompt around the document's
-argument, audience, factual constraints, composition, labels, and intended placement.
-Move the selected project-bound image into the session's `figures/` directory and
-record the final prompt and method in `visuals.md`. Inspect the result before use.
-
-Never use image generation for a quantitative chart, empirical result, archival
-facsimile, documentary photograph, or other visual that readers could mistake for
-observed evidence. Label conceptual, reconstructed, or illustrative images as such.
-Verify generated labels independently; use SVG, Mermaid, or document-native text
-when exact wording is important.
-
-## Data And Evidence Rules
-
-- Derive chart data from logged sources, supplied datasets, or transparent
-  calculations. Link every factual series to source IDs.
-- Preserve raw values separately from cleaned or transformed values.
-- Record filters, joins, exclusions, normalization, inflation adjustment,
-  rebasing, aggregation, and calculated fields.
-- Keep denominators, units, currency basis, time period, geography, sample size,
-  and uncertainty visible.
-- Do not infer missing values silently or mix incompatible series.
-- Do not digitize a chart from a source when the underlying table is available.
-- Distinguish descriptive patterns, model estimates, forecasts, and author-created
-  conceptual diagrams.
-- Treat generated images as explanatory or editorial assets, never as source-backed
-  evidence. Do not cite them as proof of a factual claim.
-- Do not use a visual to strengthen a causal claim beyond the evidence.
-
-## Design Rules
-
-- Use a descriptive title and a caption that states the takeaway without
-  overstating it.
-- Label axes and units directly. Avoid unlabeled dual axes and 3D effects.
-- Use a restrained, color-blind-safe palette; do not rely on color alone.
-- Start bar-chart quantitative axes at zero unless a clearly disclosed exception
-  is analytically necessary.
-- Show uncertainty, missingness, and breaks in series where material.
-- Make labels readable at the final document size.
-- Include useful alt text for each figure.
-- Cite the source and note author calculations below the figure.
-
-## Figure Audit
-
-Before marking a figure `checked`:
-
-1. Recalculate at least one value or transformation from the source data.
-2. Compare plotted values, labels, units, ordering, legend, and period with the
-   cleaned CSV and evidence ledger.
-3. Check whether the chosen form could mislead through scale, truncation,
-   aggregation, area, color, or omitted uncertainty.
-4. Verify the caption and surrounding prose make no stronger claim than the data.
-5. Open or render the final asset and confirm it is nonblank and legible.
-
-Hand the checked figure manifest to `evidence-auditor` and `longform-writer`.
+Place the figure near the passage it clarifies and preserve the data and source
+information needed to understand or reproduce it. Recheck affected parts when a
+figure changes; no stage command, evidence ledger, or separate audit file is a
+default requirement. Older session-management tools are available only when the
+user explicitly chooses that workflow.

@@ -1,13 +1,13 @@
 <div align="center">
   <img src="plugins/deep-research/assets/logo.png" width="112" alt="Deep Research icon">
   <h1>Deep Research for Codex</h1>
-  <p>A controllable, resumable, evidence-driven Deep Research plugin for high-quality long-form writing.</p>
+  <p>Explore deeply, develop original understanding, and write clearly from files, web sources, or both.</p>
   <p><a href="README_ZN.md">简体中文</a> | <strong>English</strong></p>
 </div>
 
 ## Why This Plugin Exists
 
-Ordinary "research this deeply" prompts often stop after opening only a handful of pages, then jump directly from search summaries to a finished draft. Deep Research turns research into an inspectable, persistent workflow: it first uses a simple orientation search to calibrate the intake, clarifies the uncertainties that materially affect the research direction, then searches formally in multiple waves, records sources and claims, checks evidence gaps, and allows outlining and drafting only after the dynamic evidence gate has passed.
+Deep Research is a local Codex plugin for exploratory research and substantial writing. Version **0.6.2** supports supplied files, pasted material, existing drafts, web sources, and combinations of them. Opening questions explore assumptions and wider perspectives, while research, interpretation, and writing can inform each other. Important facts and conclusions receive appropriate verification, and every article receives structural review and final language polishing.
 
 It is primarily designed for:
 
@@ -19,36 +19,29 @@ It is primarily designed for:
 
 ## Core Capabilities
 
-- **Question calibration**: performs a simple orientation search before asking questions, checks only the premises that materially affect the intake, and stops as soon as accurate questioning is possible.
-- **Dynamic clarification**: asks at least 3 questions with no fixed upper limit; questions are induced from genuine uncertainties in the topic rather than an unrelated fixed questionnaire.
-- **Multi-wave research**: separates discovery into orientation, expansion, counterevidence, gap filling, and verification so the model cannot stop after searching only a few pages.
-- **Dynamic evidence gate**: source count is not the only target. The plugin also checks source quality, information gain, coverage of major claims, counterevidence, and unresolved gaps.
-- **Persistent research sessions**: queries, sources, claims, textual anchors, gaps, and stage state are written to files, allowing work to resume after context compression or in a new task.
-- **Original insight**: distinguishes source consensus, existing interpretations, counterreadings, and the writer's own argument before drafting, avoiding mechanical assembly of web summaries.
-- **Long-form continuity**: preserves terminology, argumentation, and section transitions through the outline, section-level evidence assignment, and continuity notes.
-- **Multilingual prose editing**: adjusts expression according to language, article type, and content while protecting facts, citations, and the established argument.
-- **Factual-drift protection**: automatically preserves an immutable copy of the researched draft before Humanizer editing, then rechecks citations, numbers, qualifications, and source boundaries afterward.
-- **Research visualization**: can generate reproducible charts, Mermaid diagrams, tables, or clearly labeled explanatory images through Codex image generation.
+- **Exploratory opening questions**: the first substantive reply asks questions and waits unless explicitly waived. Detailed requests and referenced conversations do not count as answered intake.
+- **Flexible or complete operation**: select skills as needed, or explicitly request the default/full workflow to use all seven skills.
+- **Multiple input types**: read actual supplied material with the host's available tools. File-only writing is valid; external search is not compulsory.
+- **Original understanding**: develop connections, hypotheses, competing readings, and structures without forcing novelty or treating a source summary as the final explanation.
+- **Required writing actions**: establish focus and organization, develop the material, review the completed structure, and polish language while checking affected meaning.
+- **Bounded delegation**: subagents handle useful research branches, factual checks, figure production, and full-manuscript structural review. The lead retains core interpretation, writing, and final language polishing.
+- **Useful visualization**: make charts, diagrams, or clearly labeled illustrations when they improve understanding.
 
 ## Workflow
 
 ```text
-simple question-calibration search
-  -> dynamic clarification
-  -> confirm brief
-  -> multi-wave research and source logging
-  -> evidence gate
-     -> fail: continue research
-     -> pass: evidence audit
-  -> insight and outline
-  -> independent insight audit
-  -> chart and visual decisions
-  -> long-form drafting
-  -> preserve researched draft
-  -> article-type-aware prose editing
-  -> final factual audit
-  -> workflow gate
+read input and ask opening questions -> wait for answers and confirm direction
+  -> research supplied material, web sources, or both
+  -> check important findings
+  -> develop interpretation and organization
+  -> decide whether a visual helps; produce one only when useful
+  -> lead-authored manuscript
+  -> subagent structural review; lead implements useful revisions
+  -> lead performs whole-text language polishing
+  -> focused final factual check; lead corrects and repolishes affected passages
 ```
+
+This complete sequence is selected by an explicit default/full workflow request. Without one, the model selects skills as needed. Both modes preserve opening questions and the four writing actions. Discovery can change the provisional focus, interpretation, and structure. No fixed paragraph template, question count, research waves, source quota, ledger, duplicate draft, or completion certificate is required.
 
 ## Installation
 
@@ -66,36 +59,39 @@ Start a new Codex task after installation or upgrade so the updated Skills are l
 Select **Deep Research** in Codex, or make a request such as:
 
 ```text
-Use Deep Research for this topic. First run a simple orientation search only to calibrate the intake, then ask me about the uncertainties that materially affect the argument and research direction. Confirm the brief, conduct multi-wave formal research, and write the long-form article only after the evidence gate passes.
+Use Deep Research's default full workflow to develop an article from these files.
+Ask questions that deepen or broaden the inquiry, and wait for my answers before formal research.
 ```
 
-The plugin performs only a small orientation search before asking dynamic questions; it does not begin formal research in that turn. The calibration search stops as soon as the intake can be accurate, does not pursue broad coverage, and does not count toward the later evidence gate. After the user replies, the plugin generates and confirms the brief, then creates a persistent research session.
+To use flexible operation, select the plugin without requesting the full workflow, or explicitly ask it to use skills as needed. Opening questions may be preceded by relevant input reading and a bounded orientation check. Formal research and drafting wait for actual answers unless you explicitly ask to skip questions.
+
+Delegation is driven by skill instructions and the host's subagent tools, not a dispatch script. In the full workflow, structural review goes to a subagent with the complete current manuscript, user purpose and constraints, and relevant source access. It returns located issues and proposals; the lead decides and implements changes and performs final language polishing. Independent research, verification, and production tasks are delegated when they exist and save work. Do not create an agent per skill. If delegation is prohibited or unavailable, the lead completes the work and states the limitation.
 
 ## Seven Skills
 
 | Skill | Responsibility |
 | --- | --- |
-| `deep-research` | Main workflow, clarification protocol, and stage gates |
-| `research-orchestrator` | Query strategy, research waves, gaps, and stop conditions |
-| `evidence-auditor` | Source, claim, citation, and factual-drift audits |
-| `insight-architect` | Original thesis, counterreadings, and long-form structure |
+| `deep-research` | Opening inquiry, workflow selection, writing actions, and division of labor |
+| `research-orchestrator` | Source discovery, research strategy, gaps, and stop conditions |
+| `evidence-auditor` | Focused factual, citation, and support checks |
+| `insight-architect` | Original connections, interpretation, organization, and structural review |
 | `research-visualizer` | Charts, tables, diagrams, and generated images |
-| `longform-writer` | Section-by-section drafting and long-form continuity |
-| `prose-humanizer` | Article-type-aware multilingual prose editing |
+| `longform-writer` | Lead-authored drafting and continuity |
+| `prose-humanizer` | Required final prose review and lead-performed language polishing |
 
-The main Skill invokes the other six Skills at fixed stages and uses `workflow-gate` to verify that no stage was skipped.
+Read a skill when using it and actually perform its work. The lead reads decisive original material rather than relying solely on subagent summaries; well-supported routine checks need not be repeated. These authorship boundaries also apply when using an orchestration mode.
 
 ## Chinese Prose Profiles
 
-Writing direction is determined by language, article type, subject, evidence density, reader relationship, and the confirmed brief. Publication venue is not used as a voice preset. Chinese deliverables select one content-driven profile:
+Writing direction follows the user's purpose, preferred writing, reader, and material. The subject or publication venue does not automatically determine the article type or voice. The Chinese prose reference offers these optional tendencies:
 
 - `essayistic`: emphasizes interpretation, judgment, and prose rhythm, allowing evidence-based first person and asymmetrical paragraph structures.
 - `formal`: emphasizes precise attribution, argumentative boundaries, stable structure, and conventional components of research documents.
 - `technical`: emphasizes terminological consistency, explicit conditions, direct procedures, and exact preservation of code, formulas, units, and identifiers.
 
-`style-sheet.md` records the selected profile, protected content, citation visibility, evidence-preservation policy, sentence rhythm, paragraph movement, technical density, and expressions to retain or avoid. The editing stage uses the session's claims, sources, textual anchors, and outline as its material base. It may not restart clarification, create a second research plan, invent material, paraphrase direct quotations, or silently shorten the requested length. Evidence gaps must return to the research workflow.
+Prioritize natural, concrete, accurate Chinese, precise verbs, meaningful detail, and supported judgments. Develop connected passages rather than repeated reversals, disclaimers, or closing maxims. Theory should explain the material; useful ambiguity and rhetoric may remain. Learn a sample's viewpoint and movement without importing its content into reusable rules. Preserve facts, quotations, terminology, and the meaning of necessary qualifications; repetitive cautionary wording can be revised. No style-sheet file or paired drafts are required.
 
-After editing a Chinese draft, run:
+For optional diagnostics of a specific Chinese prose issue, use:
 
 ```powershell
 python plugins/deep-research/scripts/check_chinese_prose.py <draft.md> --profile <essayistic|formal|technical>
@@ -105,13 +101,13 @@ The checker fails only on high-confidence residue such as model self-disclosure,
 
 ## Research Depth
 
-The plugin provides `light`, `standard`, `deep`, and `exhaustive` profiles, but uses dynamic targets instead of padding a raw source count. The current `exhaustive` profile has a qualified-source floor of 24, an evidence-value floor of 65 units, and a dynamic source target of 100. Research may stop below the dynamic target only after source lanes, counterevidence, verification, and information-saturation checks are complete. Rare, authoritative, deeply read material that supports major claims can receive additional evidence value; low-quality aggregations, duplicate rewrites, and pages with no information gain cannot be used as padding.
+Research depth follows the question, consequential unknowns, and promising paths. Read important sources, compare relevant alternatives, and investigate gaps that could change the answer. Stop when the central explanation is supported and further work is unlikely to improve it materially. Do not pad source counts or claim exhaustive coverage without doing it. Legacy depth profiles and gates belong only to the explicitly selected managed runtime.
 
 ## Sessions And Evaluation
 
-Serious research tasks preserve `brief.md`, the research plan, source and claim ledgers, textual anchors, the outline, the original researched draft, and the final audit in a dedicated directory. Even after Codex context compression, the workflow can resume from session files instead of depending on chat memory.
+Keep useful source locations, important findings, and unresolved questions in conversation context or concise notes. Files can support a long project, resumption, or handoff when helpful. The existing `research_session.py` and `evaluate_run.py` tools remain available only for an explicitly chosen managed workflow or projects already using it. A long or serious task does not activate them automatically. Their structural results do not prove research quality; respect user restrictions on verification.
 
-Run the structural evaluator:
+For an explicitly selected managed session, its structural evaluator is:
 
 ```powershell
 python plugins/deep-research/scripts/evaluate_run.py --session <research-session-directory>
@@ -124,7 +120,7 @@ python plugins/deep-research/scripts/evaluate_run.py --session <research-session
 plugins/deep-research/
   .codex-plugin/plugin.json          Plugin metadata
   skills/                             Seven workflow Skills
-  scripts/                            Session, gate, evaluation, and chart scripts
+  scripts/                            Brief, chart, optional diagnostic and managed-session tools
   references/                         Research and writing rules
   tests/                              Regression tests
 ```
@@ -133,10 +129,7 @@ See [`ARCHITECTURE.md`](plugins/deep-research/ARCHITECTURE.md) for implementatio
 
 ## Validation
 
-```powershell
-cd plugins/deep-research
-python -m unittest discover -s tests -v
-```
+Validate skill frontmatter, the plugin manifest, and affected tools when changing the package. The `tests/` directory retains tests for the optional managed runtime. Run checks appropriate to the change and the user's tool restrictions; structural checks do not establish actual model behavior, originality, or writing quality. Model-level behavior requires real research and writing trials.
 
 ## License
 

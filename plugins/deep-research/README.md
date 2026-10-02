@@ -1,216 +1,154 @@
 # Deep Research
 
-Deep Research is a local Codex plugin for controllable, source-backed long-form
-research and writing.
+Deep Research is a local Codex plugin for exploratory, source-backed research and
+polished writing. It supports literary criticism, factual investigation, academic
+reviews, market analysis, technical explanations, and mixed inquiries.
 
-It preserves the useful brief-first interaction while calibrating questions against
-current external context:
+## Input Material
 
-1. Run a simple orientation search to verify only the premises that materially
-   affect the questions, then stop as soon as the intake can be accurate.
-2. Ask and persist at least 3 dynamic questions, with no fixed upper limit.
-3. Confirm and rewrite the user's brief.
-4. Start formal research in multiple waves.
-5. Persist queries, sources, claims, gaps, and textual anchors.
-6. Block outlining and drafting until the evidence gate passes.
-7. Build original insight and pass an independent insight audit.
-8. Select, generate, and audit useful charts, diagrams, or explanatory images.
-9. Draft with long-form continuity.
-10. Snapshot the researched draft, humanize the working copy, and audit both versions.
+Use supplied files or pasted material, combine them with web research, or research
+primarily online. File-only writing is supported and does not require an external
+search. Inputs can include text and Markdown, Word or PDF documents, spreadsheets,
+slides, screenshots, datasets, interview notes, and existing drafts, as the host's
+reading tools support them.
 
-The initial calibration scan improves intake but does not count as formal research.
-Sources that matter must be reopened, assessed, and logged after the brief is
-confirmed. The scan does not follow citation chains or attempt broad coverage; any
-remaining uncertainty becomes a clarification question.
+Read the relevant material before asking topic-specific questions. Clarify whether
+it serves as the factual basis, a primary work, creative material, a writing sample,
+or a draft to develop when that distinction matters. Respect a supplied-material-only
+boundary, identify inaccessible content, and do not pretend to have read it.
+Source locations need only be sufficient to revisit important passages or data.
+No separate file-ingestion stage or inventory is required.
 
-The plugin is not an official ChatGPT Deep Research implementation and does not
-claim access to private OpenAI internals.
+## Default Approach
 
-## Why It Is Different
+With no workflow instruction, use skills flexibly. An explicit request such as
+"使用默认流程", "默认全流程", or the equivalent default/full workflow selects
+the complete sequence: opening questions and direction, research, findings check,
+synthesis and structure, visual decision, drafting, final prose polish, and a
+focused final evidence check. Read and use all seven skills in that mode, with
+`evidence-auditor` checking findings and the final text. Make visuals only when
+useful, and polish affected passages after factual corrections.
 
-Most research prompts rely on the model to remember that it should search deeply.
-This plugin adds a lightweight filesystem runtime so research depth is observable
-and resumable.
+Both modes retain opening questions and the required article-writing routine
+below. Flexible skill selection does not make those writing actions optional.
+The full sequence does not require managed-session gates, fingerprints, ledgers,
+or proof files.
 
-The runtime rejects duplicate queries and sources, tracks research waves and
-high-impact gaps, distinguishes qualified evidence from low-value source padding,
-tracks information saturation, and returns a machine-readable evidence-gate result.
-If the gate fails, the workflow must continue researching instead of drafting.
-It also records ordered companion-skill stages and rejects final completion when a
-research plan, evidence audit, insight architecture, style sheet, continuity pass,
-visualization review, humanizer pass, or final audit was skipped.
+For a new research or writing task, the first substantive reply asks opening
+questions and waits. Referenced chats, earlier recommendations, existing outlines,
+drafts, and detailed requests do not constitute completed intake. The user need
+not explicitly ask for questions. Only answered opening questions for this work
+in the current chat or an explicit request to skip them permits proceeding.
 
-## Bundled Skills
+Begin with questions that help the user discover worthwhile directions, not just
+fill gaps in the original request. Explore assumptions, wider contexts, unfamiliar
+comparisons, and deeper levels of explanation. Wait for the user's answers unless
+they explicitly ask to skip questions. A complete prompt still receives thoughtful
+opening questions; do not repeat information already supplied.
 
-```text
-skills/deep-research/SKILL.md
-skills/research-orchestrator/SKILL.md
-skills/evidence-auditor/SKILL.md
-skills/insight-architect/SKILL.md
-skills/research-visualizer/SKILL.md
-skills/longform-writer/SKILL.md
-skills/prose-humanizer/SKILL.md
-```
+Confirm the chosen direction briefly. Research, interpret, outline, and write as
+the inquiry develops. Use relevant skills and tools when they help. Follow useful
+connections, consider evidence that complicates the explanation, and preserve
+explicit user boundaries. Skills are selected as needed in flexible operation;
+the explicitly selected full sequence uses all seven. Neither requires a fixed
+number of research waves.
 
-## Persistent Research Runtime
+Check important factual claims, numbers, quotations, citations, and conclusions
+against their sources. The extent of verification follows their impact and risk.
+Ideas and tentative interpretations can be developed before their factual basis
+is fully established, with that status kept clear.
 
-Create a session:
+**Every article or substantial manuscript rewrite follows four required actions:**
 
-```powershell
-python scripts/research_session.py init `
-  --session research-sessions/example `
-  --title "Example Research" `
-  --task-mode cultural_criticism `
-  --depth deep `
-  --required-lane primary_text `
-  --required-lane official
-```
+1. Establish focus and organization from the user's purpose and actual material.
+2. Draft through the material, developing the explanation across connected passages.
+3. Read the completed structure and revise development, proportion, and continuity.
+4. Polish the resulting language and recheck consequential meaning affected by edits.
 
-Before formal research, record at least three answered clarifications, write
-`brief.md` and `research-plan.md`, then record:
+Read `prose-humanizer` before drafting or rewriting and use it again for the final
+pass. Actually perform structure review and expression polishing even when the
+draft sounds fluent. Preserve facts, quotations, terminology, the meaning of
+necessary qualifications, and the user's requested scope and length. These are
+writing actions, not a fixed article outline, proof files, or extra approval steps.
+Original connections, interpretations, structures, and voices remain open. Focus
+and organization can change as discoveries develop; review preserves purposeful
+irregularity and ambiguity rather than enforcing a conventional shape.
 
-```powershell
-python scripts/research_session.py add-clarification --session research-sessions/example --dimension "task-specific dimension" --impact "what this answer changes" --question-form open --question "..." --answer "..."
-python scripts/research_session.py complete-stage --session research-sessions/example --stage brief_confirmed --note "Confirmed the binding brief, audience, scope, length, voice, and source constraints."
-python scripts/research_session.py complete-stage --session research-sessions/example --stage research_plan --note "Loaded research-orchestrator and defined source hierarchy, lanes, waves, gaps, verification, and stop conditions."
-```
+## Agent Responsibilities
 
-Log research:
+The lead keeps opening questions, direction, decisive source reading, central
+interpretation, initial organization, drafting, revision decisions, and final
+language polishing. This authorship boundary also applies in orchestration mode.
 
-```powershell
-python scripts/research_session.py add-query --session research-sessions/example --query "..." --wave orientation --lane official
-python scripts/research_session.py add-source --session research-sessions/example --url "https://example.com" --title "Example" --lane official --source-type official --opened --quality high --reading-depth deep
-python scripts/research_session.py add-claim --session research-sessions/example --claim "..." --source-id S-0001 --section "Section 1" --major
-python scripts/research_session.py add-gap --session research-sessions/example --question "..." --impact high --next-query "..."
-python scripts/research_session.py cover-item --session research-sessions/example --item "..."
-python scripts/research_session.py complete-wave --session research-sessions/example --wave orientation
-python scripts/research_session.py assess-saturation --session research-sessions/example --status pass --note "Targeted follow-up searches across the remaining source lanes repeated existing evidence; counterpoint and verification searches found no unresolved high-impact gaps."
-```
+In the complete workflow, delegate useful independent research branches, document
+extraction, focused factual checks, calculations under an agreed method, and
+figure production when those tasks exist. Assign whole-manuscript structural
+review to a subagent using `insight-architect`; the lead implements useful revisions
+and performs the final language pass. The reviewer receives the complete current
+text, user purpose and constraints, and relevant original material, and returns
+located issues and proposals rather than a rewritten article.
 
-Before saturation can pass, the final two required waves must each contain an
-executed query with a substantive `--result-note`.
+In flexible operation, delegate when beneficial; a narrow task may have its
+structural review performed by the lead. If subagents are prohibited or unavailable,
+the lead performs the work and reports that boundary. No fixed agent count or
+one-agent-per-skill arrangement is required. Keep source access and necessary
+context in handoffs; the lead reads decisive originals without repeating all
+routine retrieval or verification. Do not default to parallel chapter drafting
+or delegate final language polishing. No new review file or certificate is required.
 
-Run the hard gate:
+Prose review considers the connected argument as well as individual sentences:
+repeated paragraph shapes, automatic reversals, quotable endings, detached source
+summaries, and abstractions that obscure the subject. Learn the movement and
+viewpoint of a user sample without importing its content into reusable rules or
+substituting louder rhetoric for clearer writing.
+Remove defensive padding aimed at imagined objections and place real limits by
+the claims they affect. Theory should explain specific material, with its meaning
+and relevance clear to the reader; labels alone do not supply analysis.
 
-```powershell
-python scripts/research_session.py gate --session research-sessions/example
-python scripts/research_session.py resume --session research-sessions/example
-```
+## Skills As A Toolbox
 
-Do not outline or draft while `gate` returns `fail`.
+- `deep-research`: opening inquiry, user direction, and overall judgment.
+- `research-orchestrator`: source discovery, research strategy, and depth.
+- `insight-architect`: deeper interpretation, synthesis, and useful structure.
+- `evidence-auditor`: focused checks of consequential evidence and claims.
+- `longform-writer`: drafting and continuity when work spans sections or installments.
+- `research-visualizer`: charts, diagrams, and illustrations when they aid understanding.
+- `prose-humanizer`: required final prose review and polishing.
 
-Record each ordered companion-skill stage with `complete-stage`. Before returning
-the final deliverable, run:
+Read a skill when using it. Select companions according to the chosen workflow;
+the four writing actions always take place. Do not generate a no-visuals report when prose
+is enough or create a style sheet, continuity ledger, or audit file just to satisfy
+a stage.
 
-```powershell
-python scripts/research_session.py workflow-gate --session research-sessions/example
-```
+## Sources And Working Notes
 
-Do not call the run complete while `workflow-gate` returns `fail`.
+Keep enough information to revisit important evidence: useful links or document
+locations and precise passages, dates, or data references where relevant.
+A compact note can serve a long project or a handoff. The default workflow does
+not require JSONL query and claim logs, evidence IDs for every section, input
+fingerprints, two draft copies, stage records, or gate commands.
 
-The outline must pass `insight_audit` before pre-draft approval. Immediately before
-Humanizer editing, `evidence_prehumanize_audit` automatically copies `draft.md` to
-immutable `researched-draft.md`; the final audit compares both versions.
+Research depth depends on the question. Substantial work should seek a supported
+explanation and examine meaningful alternatives, without padding counts or
+claiming exhaustive coverage it did not achieve. Literary work uses the primary
+text and preserves ambiguity; market, academic, factual, and technical work use
+evidence appropriate to their questions.
 
-## Language-Aware Prose Editing
+## Optional Tools
 
-Writing direction is derived from the language, article type, subject, evidence
-density, reader relationship, and confirmed brief. Publication venue is not used as
-a voice preset.
+- `scripts/build_research_brief.py` produces a compact working brief.
+- `scripts/render_chart.py` renders common charts from CSV.
+- `scripts/check_chinese_prose.py` offers advisory Chinese prose diagnostics.
+- The existing `research_session.py` runtime and `evaluate_run.py` remain available
+  for explicitly chosen managed projects or resumption of projects using them.
+  Their stage and artifact requirements apply only to that optional runtime.
+  Do not start it automatically because a task is serious or long.
 
-Chinese deliverables select one content-driven profile:
+Existing sessions and tools are preserved. The runtime's structural results do
+not prove research quality. Follow the user's tool and verification restrictions;
+the default workflow performs no hash-based approval checks.
 
-- `essayistic`: interpretive and voice-led prose with visible judgment, flexible
-  rhythm, and room for qualified first person.
-- `formal`: precise, source-forward prose with explicit limits, stable structure,
-  and conventional research apparatus.
-- `technical`: terminology-stable prose with direct procedures, explicit
-  conditions, and exact preservation of code, formulas, units, and identifiers.
-
-The style sheet records the selected profile, protected content, citation
-visibility, evidence-preservation policy, sentence rhythm, paragraph movement,
-technical density, and phrases or habits to prefer or avoid. The Humanizer uses the
-session's claims, sources, textual anchors, and outline as its material base. It may
-not restart intake, create a second research plan, invent material, paraphrase
-direct quotations, or silently shorten the requested deliverable. Evidence gaps
-return to the research workflow.
-
-After editing a Chinese draft, run:
-
-```powershell
-python scripts/check_chinese_prose.py <draft-path> --profile <essayistic|formal|technical>
-```
-
-The checker fails only on high-confidence residue such as model self-disclosure,
-chat endings, and opaque promotional jargon. Punctuation, contrast, first person,
-and context-dependent terminology produce warnings at most. Quotations, citations,
-reference sections, tables, figure metadata, URLs, code, names, numbers, and
-machine fields are protected. English and other languages use language-appropriate
-editing rules and do not run the Chinese checker.
-
-## Charts And Visuals
-
-`research-visualizer` decides whether a visual adds analytical value. It can create
-reproducible bar, line, and scatter charts from CSV with `scripts/render_chart.py`,
-use available statistical or spreadsheet tools for advanced plots, use Mermaid for
-structured diagrams, or call Codex built-in image generation for explanatory and
-editorial imagery. Generated images are labeled as illustration and never treated
-as empirical evidence. Every retained figure is recorded in `visuals.md` with its
-source data or prompt, caption, alt text, placement, and audit status.
-
-Source targets are dynamic. The plugin requires a meaningful floor so research
-cannot stop after a few pages, but it does not reward padding. Shallow rewrites,
-irrelevant pages, and low-quality aggregations do not count.
-
-Rare primary material, deeply read scholarship, authoritative records, independent
-reporting, and uniquely informative niche sources receive additional evidence-value
-units. This rewards depth and usefulness without allowing the agent to stop with
-only a handful of ordinary pages.
-
-## Literary And Cultural Criticism
-
-The plugin does not treat online commentary as a substitute for reading the work.
-Use `add-anchor` to record scenes, passages, framing, motifs, dialogue, editing,
-music, omissions, and alternative readings.
-
-Before drafting, the insight stage identifies dominant interpretations, rejects
-conventional thesis candidates, and stress-tests the chosen argument.
-
-## Long-Form Writing
-
-For long projects, the session preserves:
-
-- Confirmed brief.
-- Research trace and evidence ledger.
-- Insight architecture and outline.
-- Section evidence assignments.
-- Continuity notes.
-- Current draft and audit result.
-
-This allows a new conversation or compressed context to resume from the session
-instead of reconstructing the project from memory.
-
-## Evaluation
-
-Run deterministic structural evaluation:
-
-```powershell
-python scripts/evaluate_run.py --session research-sessions/example
-```
-
-The evaluator checks research coverage, source quality and diversity, claim
-grounding, analysis structure, long-form artifacts, reliability, and workflow
-integrity. It does not replace semantic review of prose or argument quality.
-
-## References
-
-- `ARCHITECTURE.md`
-- `references/official-mechanism.md`
-- `references/session-schema.md`
-- `references/depth-profiles.md`
-- `references/security.md`
-- `references/evaluation.md`
-- `references/literary-research.md`
-- `references/chinese-prose.md`
-- `references/humanizer-zh.md`
-- `THIRD_PARTY_NOTICES.md`
+This is an unofficial workflow and does not imply access to OpenAI's private
+Deep Research implementation. Relevant method, prose, and source-handling notes
+are in `references/`; the optional runtime format is in
+`references/session-schema.md`.

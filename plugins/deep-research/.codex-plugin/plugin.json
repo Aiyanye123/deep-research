@@ -1,7 +1,7 @@
 {
   "name": "deep-research",
-  "version": "0.4.0+codex.20260825101526",
-  "description": "A quality-first, stateful Deep Research workflow for Codex with dynamic evidence gates and controllable long-form writing.",
+  "version": "0.6.2",
+  "description": "An exploratory research and writing workflow for Codex using supplied files, web sources, or both, with deeper inquiry and polished prose.",
   "author": {
     "name": "Aiyanye"
   },
@@ -38,8 +38,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Deep Research",
-    "shortDescription": "Quality-first research with dynamic evidence gates.",
-    "longDescription": "Deep Research implements a quality-first workflow on Codex: it first runs a deliberately small current-context scan to calibrate diverse, high-information clarification questions induced from the actual task instead of a fixed checklist, then persists formal research state, rejects low-value source padding, uses dynamic targets and information saturation, blocks premature drafting, independently audits original insight, supports charts and visual assets, preserves long-form continuity, applies article-type-aware Chinese or English prose editing, protects quotations and citations, snapshots the researched draft, and runs final fact checks.",
+    "shortDescription": "Explore deeply, write clearly.",
+    "longDescription": "Deep Research writes from supplied files, pasted material, web sources, or a combination. Opening questions explore deeper assumptions, alternative frames, and wider connections. Without a workflow instruction, skills are selected as needed. An explicit request for the default/full workflow uses all seven skills for inquiry, research, verification, synthesis, visual decisions, drafting, polishing, and a focused final check. Both modes require article organization, material-led drafting, structural review, and final language polishing. The lead retains direction, decisive source reading, central interpretation, writing, and final language polish. The full workflow delegates useful research branches, factual checks, and figure production, and assigns whole-manuscript structural review to a subagent. Fixed counts, certificates, ledgers, fingerprints, and paired drafts are not required. Managed-session tools remain separately optional.",
     "developerName": "Aiyanye",
     "category": "Productivity",
     "capabilities": [
@@ -50,9 +50,9 @@
       "Visualize"
     ],
     "defaultPrompt": [
-      "Use Deep Research for this topic.",
-      "Use a small current-context scan to calibrate diverse, high-information questions; 3 questions is only the floor.",
-      "Deep-dive, visualize useful evidence, and write with a persistent research session."
+      "Use Deep Research to develop an article from my supplied files, pasted material, referenced chats, or web sources. On a new task, ask opening questions in your first response and wait for my reply unless I explicitly ask to skip them; prior discussion is context, not completed intake.",
+      "使用默认全流程，完整执行开头问答、研究、证据核查、构思与结构、可视化判断、写作、最终润色和终稿核查。开头问题请拓宽或深化我的思路，等待我回答后再正式研究。按需要回查与修改，不额外建立流程证明文件。",
+      "Research deeply, develop a useful explanation, and always review and polish the final prose. Use natural, concrete, accurate Chinese when appropriate, with sources for important facts and no unnecessary workflow paperwork."
     ],
     "brandColor": "#111111",
     "composerIcon": "./assets/icon.png",
