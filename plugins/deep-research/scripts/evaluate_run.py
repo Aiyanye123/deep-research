@@ -135,6 +135,15 @@ def evaluate(session: Path) -> dict:
         "draft": session / "draft.md",
         "continuity": session / "continuity.md",
     }
+    if state.get("schema_version", 1) >= 4:
+        required_stages = research_session.ensure_workflow_state(state)["required_stages"]
+        artifact_paths = {}
+        for stage_name in required_stages:
+            stage = research_session.WORKFLOW_STAGE_BY_NAME.get(stage_name)
+            if stage is None:
+                continue
+            artifact = session / stage["artifact"]
+            artifact_paths[artifact.stem.replace("-", "_")] = artifact
 
     return {
         "session": str(session),

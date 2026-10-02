@@ -48,12 +48,19 @@ research-orchestrator research; evidence-auditor findings check; insight-archite
 synthesis and structure; research-visualizer visual decision and useful visuals;
 longform-writer draft; prose-humanizer full polish; evidence-auditor focused final
 check. Polish affected passages after factual corrections. Read and use all seven
-skills for the complete workflow; a text-only visual decision needs no artifact.
+skills for the complete workflow; a text-only visual decision needs no figure.
 Both modes retain opening questions and the required article-writing routine
 unless the user's explicit instructions change them. Flexible skill selection
-does not waive the writing actions below. Neither mode activates managed-session
-gates or requires proof files. Keep the selected mode in the working context,
-not a separate form.]
+does not waive the writing actions below. After answered or explicitly waived
+intake and a chosen direction, the full workflow automatically creates a managed
+research-sessions/<YYYY-MM-DD-topic>/ directory in the task workspace or selected
+output root using research_session.py. Read references/session-schema.md; use
+its current stage-based files, evidence gate, and dependency-based workflow gate.
+Independent branches can finish in different orders; dependent stages wait for
+their prerequisites. No content fingerprints are calculated or compared.
+Flexible operation activates the runtime only on an explicit request or managed
+resumption. Respect an explicit instruction to waive saving or gates and report
+the resulting limitation accurately.]
 
 ## Execution Responsibilities
 
@@ -87,13 +94,33 @@ Keep useful source locations without a compulsory file inventory.]
 ## Research Priorities
 
 [Note the most fruitful questions, relevant material, and important unknowns.
-Use the method suited to the topic; let discoveries reshape the inquiry.]
+Use the method suited to the topic; let discoveries reshape the inquiry. In the
+full workflow, plan complementary retrieval branches with task-appropriate
+targets or ranges to expand coverage and the useful original-source candidate
+pool beyond the minimum needed to draft. Agents open promising material and
+return original locations and context; consolidate derivative evidence chains.
+The lead checks coverage, follows consequential gaps, and selects decisive
+originals for deep reading. Respect source boundaries and adapt targets to actual
+availability; do not pad counts or treat quantity as a quality gate.]
 
 ## Working Notes And Sources
 
 [Keep useful links, important findings, and source locations here if needed.
-No per-query ledger, fixed search waves, stage records, or separate audits are
-required. A short project can keep these in conversation context.]
+In the full workflow, update research-plan.md and the runtime's queries.jsonl,
+sources.jsonl, claims.jsonl, gaps.jsonl, and relevant textual anchors with actual
+research and important evidence. Retain useful extracts in research-notes.md as
+needed. Preserve important original-source locations and
+context, findings, interpretive choices, and unresolved questions. Save the chosen
+structure in outline.md, actual structural review feedback and revision decisions
+in structure-review.md, and final checks and corrections in final-audit.md.
+Save the complete manuscript for structural review and update it through final
+polishing and corrections. Record ready stages after their real work is complete;
+consolidate agent results before updating shared files. After material edits,
+reopen affected stages and redo dependent reviews; no fingerprint detects edits
+automatically. Run the evidence gate before committed structure and drafting,
+and workflow-gate before delivery. Export the approved draft to any requested
+final path. Provide the manuscript and session location. In flexible operation,
+a short project can keep notes in conversation context.]
 
 ## Writing And Final Polish
 
@@ -119,7 +146,9 @@ and revision may inform each other. New connections, interpretations, structures
 and voices remain open; discoveries can change the provisional focus and structure
 within the user's boundaries. Preserve purposeful irregularity and ambiguity.
 No separate style sheet, duplicate draft,
-fingerprint, or completion certificate is required.]
+or content fingerprint is required. In the full workflow, keep actual review
+records and stage completion under the current session's dependencies; do not
+restore the legacy workflow's additional mandatory stages.]
 """
 
 

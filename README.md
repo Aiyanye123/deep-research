@@ -41,7 +41,7 @@ read input and ask opening questions -> wait for answers and confirm direction
   -> focused final factual check; lead corrects and repolishes affected passages
 ```
 
-This complete sequence is selected by an explicit default/full workflow request. Without one, the model selects skills as needed. Both modes preserve opening questions and the four writing actions. Discovery can change the provisional focus, interpretation, and structure. No fixed paragraph template, question count, research waves, source quota, ledger, duplicate draft, or completion certificate is required.
+This complete sequence is selected by an explicit default/full workflow request. Without one, the model selects skills as needed. Both modes preserve opening questions and the four writing actions. Discovery can change the provisional focus, interpretation, and structure. Full workflow additionally uses a managed research session with an evidence gate and dependency-based workflow gate; flexible work does so only when selected or resuming a managed project. No content fingerprints, fixed paragraph template, question quota, or paired drafts are required.
 
 ## Installation
 
@@ -101,11 +101,19 @@ The checker fails only on high-confidence residue such as model self-disclosure,
 
 ## Research Depth
 
-Research depth follows the question, consequential unknowns, and promising paths. Read important sources, compare relevant alternatives, and investigate gaps that could change the answer. Stop when the central explanation is supported and further work is unlikely to improve it materially. Do not pad source counts or claim exhaustive coverage without doing it. Legacy depth profiles and gates belong only to the explicitly selected managed runtime.
+Whole-text structural review and the lead's final language pass actively address clusters of mechanical symmetry, parallel verdicts, aphoristic endings, defensive self-commentary, and disclaimer padding. Rebuild connected passages and sentence rhythm when needed, rather than only swap synonyms; preserve meaningful distinctions, counterevidence, and limits.
+
+In the default/full workflow, complementary delegated searches expand coverage and the useful original-source candidate pool beyond the minimum needed to draft. Set task-appropriate retrieval targets or ranges in `research-plan.md`, normally beginning with deep's target of 60 useful opened sources for substantial work (standard targets 30). Open promising sources, consolidate derivative evidence chains, and retain useful unexpected leads. The lead checks coverage, follows consequential gaps, and selects decisive originals for deep reading. Adapt targets to corpus availability and user boundaries; quantity alone does not prove quality or support.
+
+Research depth follows the question, consequential unknowns, and promising paths. Read important sources, compare relevant alternatives, and investigate gaps that could change the answer. Stop when the central explanation is supported and further work is unlikely to improve it materially. Do not pad source counts or claim exhaustive coverage without doing it. Managed sessions record actual waves and saturation checks; numerical shortfalls in schema 3 and later are effort-review warnings rather than proof of unsupported findings.
 
 ## Sessions And Evaluation
 
-Keep useful source locations, important findings, and unresolved questions in conversation context or concise notes. Files can support a long project, resumption, or handoff when helpful. The existing `research_session.py` and `evaluate_run.py` tools remain available only for an explicitly chosen managed workflow or projects already using it. A long or serious task does not activate them automatically. Their structural results do not prove research quality; respect user restrictions on verification.
+The explicitly selected default/full workflow automatically creates `research-sessions/<YYYY-MM-DD-topic>/` using `research_session.py` after intake is answered or waived and the direction is chosen. Preserve separate stage-based files: `brief.md`, `research-plan.md`, `pre-outline-audit.md`, `outline.md`, `visuals.md`, `draft.md`, `structure-review.md`, and `final-audit.md`, along with session state, stage records, and actual query, source, important claim, gap, and relevant anchor records. Use `research-notes.md` for useful working findings when needed. Save the complete manuscript before structural review, then update it through revision, whole-text polish, and corrections. Export the approved draft to any requested final path; deliver the manuscript and session location. Preserve existing files and respect explicit changes to saving or gates.
+
+New managed sessions use nine stages with prerequisites rather than a fixed child-agent return order. Drafting and visual review can finish in either order after synthesis; polish waits for structural and visual review, and final factual review waits for polish. Consolidate independent child results before serial updates to shared records. Reopening a stage invalidates that node and its dependency descendants, leaving unrelated branches intact. Run `gate` before committed structure and drafting and `workflow-gate` before delivery. No content fingerprints are computed or compared: meaningful file edits require the lead to reopen affected stages and actually review them again. Existing sessions retain their original required stages and historical fingerprints as inert data.
+
+In flexible operation, use conversation context, notes, or files according to resumption needs, and select managed operation only when requested or continuing a managed project. Session files and passing gates do not prove research quality or actual reading. The evaluator remains optional. See the [session schema](plugins/deep-research/references/session-schema.md).
 
 For an explicitly selected managed session, its structural evaluator is:
 

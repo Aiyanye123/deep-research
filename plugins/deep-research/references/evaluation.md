@@ -2,7 +2,8 @@
 
 This reference is for maintainers and explicitly requested evaluation. It does
 not add stages, files, or scoring to ordinary research delivery. Structural CLI
-checks apply only to the optional managed runtime and remain subject to the user's
+checks apply to managed sessions, selected automatically by the explicit full
+workflow or separately in flexible operation, and remain subject to the user's
 verification restrictions. The qualitative criteria can inform judgment without
 requiring a separate review report.
 

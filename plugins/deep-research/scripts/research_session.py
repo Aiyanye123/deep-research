@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import re
 import shutil
@@ -181,6 +180,12 @@ WORKFLOW_STAGES = [
         "requires_evidence_gate": True,
     },
     {
+        "name": "structure_review",
+        "skill": "insight-architect",
+        "artifact": "structure-review.md",
+        "requires_evidence_gate": True,
+    },
+    {
         "name": "evidence_prehumanize_audit",
         "skill": "evidence-auditor",
         "artifact": "pre-humanize-audit.md",
@@ -201,17 +206,29 @@ WORKFLOW_STAGES = [
 ]
 WORKFLOW_STAGE_BY_NAME = {stage["name"]: stage for stage in WORKFLOW_STAGES}
 WORKFLOW_STAGE_NAMES = [stage["name"] for stage in WORKFLOW_STAGES]
+LEGACY_WORKFLOW_STAGE_NAMES = [name for name in WORKFLOW_STAGE_NAMES if name != "structure_review"]
+DEFAULT_WORKFLOW_STAGE_NAMES = [
+    "brief_confirmed", "research_plan", "evidence_preoutline_audit",
+    "insight_outline", "visualization_review", "draft_complete",
+    "structure_review", "humanized_draft", "evidence_final_audit",
+]
+WORKFLOW_DEPENDENCIES = {
+    "brief_confirmed": [],
+    "research_plan": ["brief_confirmed"],
+    "evidence_preoutline_audit": ["research_plan"],
+    "insight_outline": ["evidence_preoutline_audit"],
+    "visualization_review": ["insight_outline"],
+    "draft_complete": ["insight_outline"],
+    "structure_review": ["draft_complete"],
+    "humanized_draft": ["structure_review", "visualization_review"],
+    "evidence_final_audit": ["humanized_draft"],
+}
 AUDIT_STAGE_NAMES = {
     stage["name"] for stage in WORKFLOW_STAGES if stage["skill"] == "evidence-auditor"
-}
+} | {"structure_review"}
 CLAIM_EVIDENCE_FIELDS = (
     "evidence_note", "locator", "assumptions", "limitations", "support_type",
 )
-MUTABLE_WORKFLOW_ARTIFACT_STAGES = {
-    "continuity_ready",
-    "draft_complete",
-    "humanized_draft",
-}
 TRACKING_QUERY_PREFIXES = ("utm_",)
 TRACKING_QUERY_KEYS = {
     "fbclid",
@@ -357,14 +374,19 @@ def invalidate_saturation(state: dict) -> None:
 
 
 def ensure_workflow_state(state: dict) -> dict:
+    default_stages = (
+        DEFAULT_WORKFLOW_STAGE_NAMES
+        if state.get("schema_version", 1) >= 4
+        else LEGACY_WORKFLOW_STAGE_NAMES
+    )
     workflow = state.setdefault(
         "workflow",
         {
-            "required_stages": list(WORKFLOW_STAGE_NAMES),
+            "required_stages": list(default_stages),
             "completed": [],
         },
     )
-    workflow.setdefault("required_stages", list(WORKFLOW_STAGE_NAMES))
+    workflow.setdefault("required_stages", list(default_stages))
     workflow.setdefault("completed", [])
     return workflow
 
@@ -374,15 +396,37 @@ def completed_stage_names(state: dict) -> list[str]:
     return [record["stage"] for record in workflow["completed"]]
 
 
-def next_workflow_stage(state: dict) -> str | None:
+def workflow_dependencies(state: dict) -> dict[str, list[str]]:
+    required = ensure_workflow_state(state)["required_stages"]
+    if state.get("schema_version", 1) >= 4:
+        return {name: WORKFLOW_DEPENDENCIES.get(name, []) for name in required}
+    return {name: required[index - 1:index] for index, name in enumerate(required)}
+
+
+def ready_workflow_stages(state: dict) -> list[str]:
     completed = set(completed_stage_names(state))
-    return next((name for name in WORKFLOW_STAGE_NAMES if name not in completed), None)
+    return [
+        name for name, dependencies in workflow_dependencies(state).items()
+        if name not in completed and all(item in completed for item in dependencies)
+    ]
+
+
+def next_workflow_stage(state: dict) -> str | None:
+    return next(iter(ready_workflow_stages(state)), None)
 
 
 def invalidate_workflow_from(state: dict, stage_name: str) -> None:
     workflow = ensure_workflow_state(state)
-    start = WORKFLOW_STAGE_NAMES.index(stage_name)
-    invalidated = set(WORKFLOW_STAGE_NAMES[start:])
+    dependencies = workflow_dependencies(state)
+    invalidated = {stage_name}
+    while True:
+        downstream = {
+            name for name, prerequisites in dependencies.items()
+            if any(item in invalidated for item in prerequisites)
+        }
+        if downstream <= invalidated:
+            break
+        invalidated.update(downstream)
     workflow["completed"] = [
         record for record in workflow["completed"] if record["stage"] not in invalidated
     ]
@@ -422,29 +466,18 @@ def insight_audit_passes(path: Path) -> bool:
     )
 
 
-def file_sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
-
-
-def audit_fingerprint(path: Path, stage_name: str, use_snapshot: bool = False) -> str:
-    """Bind an audit to its evidence and relevant inputs, not mutable stage bookkeeping."""
-    state = load_session(path)
-    context = {
-        key: state.get(key)
-        for key in (
-            "task_mode", "required_waves", "required_lanes", "must_cover",
-            "covered_items", "thresholds", "saturation",
-        )
-    }
+def audit_input_files(path: Path, stage_name: str) -> list[str]:
+    """List the material a reviewer should inspect for this stage."""
     names = [
         "brief.md", "research-plan.md", "clarifications.jsonl", "queries.jsonl",
         "sources.jsonl", "claims.jsonl", "gaps.jsonl", "textual-anchors.jsonl",
     ]
     if stage_name != "evidence_preoutline_audit":
-        context["planned_sections"] = state.get("planned_sections")
         names.append("outline.md")
-    if stage_name in {"evidence_prehumanize_audit", "evidence_final_audit"}:
-        names.extend(["draft.md", "visuals.md", "style-sheet.md"])
+    if stage_name in {"structure_review", "evidence_prehumanize_audit", "evidence_final_audit"}:
+        names.extend(["draft.md", "visuals.md"])
+        if (path / "style-sheet.md").exists():
+            names.append("style-sheet.md")
         figures = path / "figures"
         if figures.exists():
             names.extend(
@@ -452,24 +485,9 @@ def audit_fingerprint(path: Path, stage_name: str, use_snapshot: bool = False) -
                 for item in sorted(figures.rglob("*"))
                 if item.is_file()
             )
-    if stage_name == "evidence_final_audit":
+    if stage_name == "evidence_final_audit" and (path / "researched-draft.md").exists():
         names.append("researched-draft.md")
-    context["files"] = {
-        name: file_sha256(path / name) if (path / name).is_file() else None
-        for name in names
-    }
-    if stage_name == "evidence_preoutline_audit":
-        # Assigning sections after the research audit does not change its evidence.
-        context["files"].pop("claims.jsonl")
-        context["claims"] = [
-            {key: value for key, value in claim.items() if key not in {"section", "updated_at"}}
-            for claim in read_jsonl(path / "claims.jsonl")
-        ]
-    if use_snapshot and stage_name == "evidence_prehumanize_audit":
-        snapshot = path / "researched-draft.md"
-        context["files"]["draft.md"] = file_sha256(snapshot) if snapshot.is_file() else None
-    payload = json.dumps(context, sort_keys=True, ensure_ascii=False).encode("utf-8")
-    return hashlib.sha256(payload).hexdigest()
+    return names
 
 
 def audit_field(content: str, field: str) -> str | None:
@@ -477,7 +495,7 @@ def audit_field(content: str, field: str) -> str | None:
     return values[0].strip() if len(values) == 1 else None
 
 
-def audit_errors(path: Path, stage_name: str, completed: bool = False) -> list[str]:
+def audit_errors(path: Path, stage_name: str) -> list[str]:
     artifact = path / WORKFLOW_STAGE_BY_NAME[stage_name]["artifact"]
     content = artifact.read_text(encoding="utf-8") if artifact.exists() else ""
     errors = []
@@ -485,9 +503,6 @@ def audit_errors(path: Path, stage_name: str, completed: bool = False) -> list[s
         errors.append("requires exactly one Status: pass")
     if audit_field(content, "Required revisions") != "none":
         errors.append("requires Required revisions: none after all blocking fixes")
-    expected_fingerprint = audit_fingerprint(path, stage_name, use_snapshot=completed)
-    if audit_field(content, "Input fingerprint") != expected_fingerprint:
-        errors.append("audit inputs changed or fingerprint missing; audit the current inputs again")
     if stage_name == "insight_audit" and not insight_audit_passes(artifact):
         errors.append("requires knowledge contribution, strongest alternative, counterevidence, and judgment update")
     return errors
@@ -495,7 +510,8 @@ def audit_errors(path: Path, stage_name: str, completed: bool = False) -> list[s
 
 def audit_context_command(args: argparse.Namespace) -> int:
     path = session_dir(args.session)
-    print(f"Input fingerprint: {audit_fingerprint(path, args.stage)}")
+    print(f"Review stage: {args.stage}")
+    print("Review inputs: " + ", ".join(audit_input_files(path, args.stage)))
     print("Audit the current inputs; record Status and Required revisions in the audit artifact.")
     return 0
 
@@ -534,6 +550,10 @@ def update_workflow_status(state: dict, evidence_status: str | None = None) -> N
 
 
 def touch_session_files(path: Path) -> None:
+    artifacts = {
+        WORKFLOW_STAGE_BY_NAME[stage]["artifact"]
+        for stage in DEFAULT_WORKFLOW_STAGE_NAMES
+    }
     for name in (
         "clarifications.jsonl",
         "queries.jsonl",
@@ -555,9 +575,12 @@ def touch_session_files(path: Path) -> None:
         ("style-sheet.md", "# Style Sheet\n"),
         ("continuity.md", "# Continuity Notes\n"),
         ("draft.md", "# Draft\n"),
+        ("structure-review.md", "# Structure Review\n"),
         ("pre-humanize-audit.md", "# Pre-Humanize Evidence Audit\n"),
         ("final-audit.md", "# Final Evidence Audit\n"),
     ):
+        if name not in artifacts:
+            continue
         target = path / name
         if not target.exists():
             target.write_text(heading, encoding="utf-8")
@@ -590,6 +613,7 @@ def init_command(args: argparse.Namespace) -> int:
             "style-sheet.md",
             "continuity.md",
             "draft.md",
+            "structure-review.md",
             "pre-humanize-audit.md",
             "final-audit.md",
             "researched-draft.md",
@@ -636,7 +660,7 @@ def init_command(args: argparse.Namespace) -> int:
 
     required_lanes = list(dict.fromkeys(args.required_lane or []))
     state = {
-        "schema_version": 3,
+        "schema_version": 4,
         "title": args.title,
         "task_mode": args.task_mode,
         "depth_profile": args.depth,
@@ -695,7 +719,7 @@ def init_command(args: argparse.Namespace) -> int:
             "evidence_query_ids": [],
         },
         "workflow": {
-            "required_stages": list(WORKFLOW_STAGE_NAMES),
+            "required_stages": list(DEFAULT_WORKFLOW_STAGE_NAMES),
             "completed": [],
         },
     }
@@ -1501,14 +1525,12 @@ def complete_stage_command(args: argparse.Namespace) -> int:
     path = session_dir(args.session)
     state = load_session(path)
     ensure_workflow_state(state)
-    expected = next_workflow_stage(state)
-    if expected is None:
+    ready = ready_workflow_stages(state)
+    if not ready:
         raise SystemExit("All workflow stages are already complete. Run workflow-gate.")
-    if args.stage != expected:
-        expected_skill = WORKFLOW_STAGE_BY_NAME[expected]["skill"]
+    if args.stage not in ready:
         raise SystemExit(
-            f"Cannot complete '{args.stage}' yet. Next required stage is "
-            f"'{expected}' using {expected_skill}."
+            f"Cannot complete '{args.stage}' yet. Ready stages: {', '.join(ready)}."
         )
 
     skip_request = validate_opening_questions(
@@ -1547,7 +1569,12 @@ def complete_stage_command(args: argparse.Namespace) -> int:
     researched_draft = path / "researched-draft.md"
     if args.stage == "evidence_prehumanize_audit":
         shutil.copyfile(path / "draft.md", researched_draft)
-    if args.stage in {"humanized_draft", "evidence_final_audit"} and not researched_draft.exists():
+    if (
+        state.get("schema_version", 1) < 4
+        and "evidence_prehumanize_audit" in state["workflow"]["required_stages"]
+        and args.stage in {"humanized_draft", "evidence_final_audit"}
+        and not researched_draft.exists()
+    ):
         raise SystemExit(
             "Missing researched-draft.md snapshot. Re-run evidence_prehumanize_audit before humanizing."
         )
@@ -1556,16 +1583,11 @@ def complete_stage_command(args: argparse.Namespace) -> int:
         "stage": args.stage,
         "skill": stage["skill"],
         "artifact": stage["artifact"],
-        "artifact_sha256": file_sha256(artifact),
         "note": note,
         "completed_at": utc_now(),
     }
     if skip_request:
         record["skip_questions_request"] = skip_request
-    if args.stage == "evidence_final_audit":
-        record["draft_sha256"] = file_sha256(path / "draft.md")
-    if args.stage in {"evidence_prehumanize_audit", "evidence_final_audit"}:
-        record["researched_draft_sha256"] = file_sha256(researched_draft)
     state["workflow"]["completed"].append(record)
     state["evidence_gate"] = evidence["status"]
     update_workflow_status(state, evidence["status"])
@@ -1591,6 +1613,28 @@ def workflow_gate_result(path: Path) -> dict:
     }
     reasons: list[str] = []
     actions: list[str] = []
+    if state.get("schema_version", 1) >= 4:
+        omitted = set(DEFAULT_WORKFLOW_STAGE_NAMES) - set(workflow["required_stages"])
+        if omitted:
+            reasons.append(f"Required workflow stages omitted: {', '.join(sorted(omitted))}")
+    if len(workflow["required_stages"]) != len(set(workflow["required_stages"])):
+        reasons.append("Duplicate required workflow stages")
+    dependencies = workflow_dependencies(state)
+    seen = set()
+    for record in workflow["completed"]:
+        name = record.get("stage")
+        if name not in dependencies or name not in WORKFLOW_STAGE_BY_NAME:
+            reasons.append(f"Unknown or unrequired workflow stage: {name}")
+        elif name in seen:
+            reasons.append(f"Duplicate workflow stage: {name}")
+        elif any(item not in seen for item in dependencies[name]):
+            reasons.append(f"Workflow stage {name} completed before its prerequisites")
+        seen.add(name)
+    unknown_required = [name for name in workflow["required_stages"] if name not in WORKFLOW_STAGE_BY_NAME]
+    if unknown_required:
+        reasons.append(f"Unknown required workflow stages: {', '.join(unknown_required)}")
+    if reasons:
+        actions.append("Reopen affected stages and complete them after their prerequisites")
 
     if evidence["status"] != "pass":
         reasons.append("Evidence gate is not currently passing")
@@ -1600,10 +1644,11 @@ def workflow_gate_result(path: Path) -> dict:
     if missing:
         reasons.append(f"Missing workflow stages: {', '.join(missing)}")
         next_missing = missing[0]
-        actions.append(
-            f"Load {WORKFLOW_STAGE_BY_NAME[next_missing]['skill']} and complete "
-            f"workflow stage '{next_missing}'"
-        )
+        if next_missing in WORKFLOW_STAGE_BY_NAME:
+            actions.append(
+                f"Load {WORKFLOW_STAGE_BY_NAME[next_missing]['skill']} and complete "
+                f"workflow stage '{next_missing}'"
+            )
 
     stage_skill_mismatches = [
         f"{record.get('stage')}:{record.get('skill')}"
@@ -1618,70 +1663,23 @@ def workflow_gate_result(path: Path) -> dict:
         actions.append("Re-complete the affected stages with their required companion skill")
 
     incomplete_artifacts = []
-    changed_artifacts = []
     for record in workflow["completed"]:
         stage_name = record.get("stage")
         stage = WORKFLOW_STAGE_BY_NAME.get(stage_name)
         if not stage:
             continue
         if stage_name in AUDIT_STAGE_NAMES:
-            for error in audit_errors(path, stage_name, completed=True):
+            for error in audit_errors(path, stage_name):
                 reasons.append(f"{stage_name}: {error}")
                 actions.append(f"Reopen {stage_name} with reopen-stage and audit its current inputs")
         artifact = path / stage["artifact"]
         if not nonempty_markdown(artifact):
             incomplete_artifacts.append(f"{stage_name}:{stage['artifact']}")
-        elif (
-            stage_name not in MUTABLE_WORKFLOW_ARTIFACT_STAGES
-            and record.get("artifact_sha256")
-            and record["artifact_sha256"] != file_sha256(artifact)
-        ):
-            changed_artifacts.append(f"{stage_name}:{stage['artifact']}")
     if incomplete_artifacts:
         reasons.append(
             f"Completed stages have empty artifacts: {', '.join(incomplete_artifacts)}"
         )
         actions.append("Restore substantive stage artifacts and re-complete invalid stages")
-    if changed_artifacts:
-        reasons.append(
-            f"Stage artifacts changed after completion: {', '.join(changed_artifacts)}"
-        )
-        actions.append("Use reopen-stage for the earliest changed stage, revise, then complete downstream stages")
-
-    researched_draft = path / "researched-draft.md"
-    prehumanize_records = [
-        record
-        for record in workflow["completed"]
-        if record.get("stage") == "evidence_prehumanize_audit"
-    ]
-    if prehumanize_records:
-        expected_researched_hash = prehumanize_records[-1].get("researched_draft_sha256")
-        if (
-            not researched_draft.exists()
-            or not expected_researched_hash
-            or expected_researched_hash != file_sha256(researched_draft)
-        ):
-            reasons.append("Researched draft snapshot changed after the pre-humanize audit")
-            actions.append("Restore the researched draft and re-run the pre-humanize audit")
-
-    final_records = [
-        record
-        for record in workflow["completed"]
-        if record.get("stage") == "evidence_final_audit"
-    ]
-    if final_records:
-        final_draft_hash = final_records[-1].get("draft_sha256")
-        if not final_draft_hash or final_draft_hash != file_sha256(path / "draft.md"):
-            reasons.append("Draft changed after the final evidence audit")
-            actions.append("Use reopen-stage --stage evidence_final_audit, then audit the revised draft")
-        final_researched_hash = final_records[-1].get("researched_draft_sha256")
-        if (
-            not researched_draft.exists()
-            or not final_researched_hash
-            or final_researched_hash != file_sha256(researched_draft)
-        ):
-            reasons.append("Researched draft snapshot changed after the final evidence audit")
-            actions.append("Restore the snapshot and re-run evidence_final_audit")
 
     status = "pass" if not reasons else "fail"
     return {
@@ -1693,6 +1691,7 @@ def workflow_gate_result(path: Path) -> dict:
             "completed_stages": len(completed_set),
             "required_stages": len(workflow["required_stages"]),
             "next_stage": next_workflow_stage(state),
+            "ready_stages": ready_workflow_stages(state),
             "evidence_gate": evidence["status"],
             "completed_skills": sorted(completed_skills),
             "required_skills": sorted(required_skills),
@@ -1752,6 +1751,7 @@ def status_command(args: argparse.Namespace) -> int:
         "workflow_gate": workflow["status"],
         "completed_workflow_stages": completed_stage_names(state),
         "next_workflow_stage": next_workflow_stage(state),
+        "ready_stages": ready_workflow_stages(state),
         "metrics": result["metrics"],
         "warnings": result["warnings"],
         "next_actions": workflow["next_actions"] or result["next_actions"],
@@ -1764,6 +1764,7 @@ def resume_command(args: argparse.Namespace) -> int:
     path = session_dir(args.session)
     state = load_session(path)
     next_stage = next_workflow_stage(state)
+    print("Ready stages: " + ", ".join(ready_workflow_stages(state)))
     if next_stage in {"brief_confirmed", "research_plan"}:
         stage = WORKFLOW_STAGE_BY_NAME[next_stage]
         print(
@@ -1775,10 +1776,10 @@ def resume_command(args: argparse.Namespace) -> int:
     if result["status"] != "pass":
         actions = result["next_actions"]
     elif next_stage is not None:
-        stage = WORKFLOW_STAGE_BY_NAME[next_stage]
         actions = [
-            f"Load {stage['skill']} and complete workflow stage '{next_stage}' "
-            f"using {stage['artifact']}"
+            f"Load {WORKFLOW_STAGE_BY_NAME[name]['skill']} and complete workflow stage '{name}' "
+            f"using {WORKFLOW_STAGE_BY_NAME[name]['artifact']}"
+            for name in ready_workflow_stages(state)
         ]
     else:
         workflow = workflow_gate_result(path)
@@ -1998,7 +1999,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     stage_parser = subparsers.add_parser(
         "complete-stage",
-        help="Record one ordered companion-skill workflow stage.",
+        help="Record a companion-skill stage after its prerequisites.",
     )
     stage_parser.add_argument("--session", required=True)
     stage_parser.add_argument("--stage", choices=WORKFLOW_STAGE_NAMES, required=True)
@@ -2009,7 +2010,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     stage_parser.set_defaults(func=complete_stage_command)
 
-    context_parser = subparsers.add_parser("audit-context", help="Show the fingerprint for the current audit inputs.")
+    context_parser = subparsers.add_parser("audit-context", help="List the inputs to review for an audit stage.")
     context_parser.add_argument("--session", required=True)
     context_parser.add_argument("--stage", choices=sorted(AUDIT_STAGE_NAMES), required=True)
     context_parser.set_defaults(func=audit_context_command)

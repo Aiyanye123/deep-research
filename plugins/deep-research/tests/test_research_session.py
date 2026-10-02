@@ -46,9 +46,6 @@ class ResearchSessionTests(unittest.TestCase):
                     "Judgment update: The contrary example narrows the conclusion.",
                 )
             )
-        lines.append(
-            f"Input fingerprint: {research_session.audit_fingerprint(session, stage)}"
-        )
         artifact = session / research_session.WORKFLOW_STAGE_BY_NAME[stage]["artifact"]
         artifact.write_text("\n".join(lines) + "\n", encoding="utf-8")
         return artifact
@@ -140,7 +137,7 @@ class ResearchSessionTests(unittest.TestCase):
         ):
             self.complete_stage(session, stage, note)
 
-    def test_failed_and_stale_audits_cannot_approve_research(self) -> None:
+    def test_failed_audits_and_blocking_revisions_cannot_approve_research(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             session = Path(temp) / "session"
             parser = research_session.build_parser()
@@ -152,11 +149,10 @@ class ResearchSessionTests(unittest.TestCase):
             with self.assertRaisesRegex(SystemExit, "Status: pass"):
                 self.complete_stage(session, "evidence_preoutline_audit", "The audit found a material unsupported conclusion that requires revision.")
             self.write_audit_artifact(session, "evidence_preoutline_audit")
-            claims = research_session.read_jsonl(session / "claims.jsonl")
-            claims[0]["claim"] = "The conclusion changed after its audit."
-            research_session.write_jsonl(session / "claims.jsonl", claims)
-            with self.assertRaisesRegex(SystemExit, "fingerprint"):
-                self.complete_stage(session, "evidence_preoutline_audit", "Attempt to reuse an audit after changing its central conclusion.")
+            artifact = session / "pre-outline-audit.md"
+            artifact.write_text("# Audit\nStatus: pass\nRequired revisions: Fix the unsupported conclusion.\n", encoding="utf-8")
+            with self.assertRaisesRegex(SystemExit, "Required revisions: none"):
+                self.complete_stage(session, "evidence_preoutline_audit", "The audit still requires a material unsupported conclusion to be revised.")
             self.write_audit_artifact(session, "evidence_preoutline_audit")
             self.complete_stage(session, "evidence_preoutline_audit", "Audited the revised conclusion against the current source evidence.")
 
@@ -213,7 +209,7 @@ class ResearchSessionTests(unittest.TestCase):
             )
             self.assertEqual(args.func(args), 0)
             state = research_session.load_session(session)
-            self.assertEqual(state["schema_version"], 3)
+            self.assertEqual(state["schema_version"], 4)
             result = research_session.gate_result(session)
             self.assertEqual(result["status"], "fail")
             self.assertTrue(any("Missing required waves" in item for item in result["reasons"]))
@@ -857,7 +853,7 @@ class ResearchSessionTests(unittest.TestCase):
         self.assertEqual(stage["skill"], "research-visualizer")
         self.assertEqual(stage["artifact"], "visuals.md")
 
-    def test_workflow_gate_detects_draft_change_after_final_audit(self) -> None:
+    def test_legacy_fingerprints_are_ignored_without_rewriting_records(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             session = Path(temp) / "session"
             session.mkdir()
@@ -912,10 +908,9 @@ class ResearchSessionTests(unittest.TestCase):
                             "stage": "evidence_final_audit",
                             "skill": "evidence-auditor",
                             "artifact": "final-audit.md",
-                            "draft_sha256": research_session.file_sha256(draft),
-                            "researched_draft_sha256": research_session.file_sha256(
-                                researched_draft
-                            ),
+                            "artifact_sha256": "legacy-opaque-value",
+                            "draft_sha256": "legacy-opaque-value",
+                            "researched_draft_sha256": "legacy-opaque-value",
                         }
                     ],
                 },
@@ -930,13 +925,16 @@ class ResearchSessionTests(unittest.TestCase):
             ):
                 (session / name).write_text("", encoding="utf-8")
             self.write_audit_artifact(session, "evidence_final_audit")
+            with (session / "final-audit.md").open("a", encoding="utf-8") as handle:
+                handle.write("Input fingerprint: legacy-opaque-value\n")
+            original = (session / "session.json").read_text(encoding="utf-8")
             self.assertEqual(research_session.workflow_gate_result(session)["status"], "pass")
             draft.write_text("# Draft\n\nChanged after audit.\n", encoding="utf-8")
             result = research_session.workflow_gate_result(session)
-            self.assertEqual(result["status"], "fail")
-            self.assertTrue(any("changed after" in item for item in result["reasons"]))
+            self.assertEqual(result["status"], "pass")
+            self.assertEqual((session / "session.json").read_text(encoding="utf-8"), original)
 
-    def test_full_ordered_six_skill_workflow_can_pass(self) -> None:
+    def test_full_dependency_workflow_and_explicit_reopening(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             session = Path(temp) / "session"
             parser = research_session.build_parser()
@@ -947,6 +945,9 @@ class ResearchSessionTests(unittest.TestCase):
             self.complete_opening_stages(session)
 
             state = research_session.load_session(session)
+            self.assertEqual(state["workflow"]["required_stages"], research_session.DEFAULT_WORKFLOW_STAGE_NAMES)
+            for name in ("insight-audit.md", "pre-draft-audit.md", "style-sheet.md", "continuity.md", "pre-humanize-audit.md"):
+                self.assertFalse((session / name).exists())
             state["required_waves"] = []
             for key in (
                 "min_executed_queries",
@@ -1020,6 +1021,7 @@ class ResearchSessionTests(unittest.TestCase):
                 "style_sheet": "style-sheet.md",
                 "continuity_ready": "continuity.md",
                 "draft_complete": "draft.md",
+                "structure_review": "structure-review.md",
                 "evidence_prehumanize_audit": "pre-humanize-audit.md",
                 "humanized_draft": "draft.md",
                 "evidence_final_audit": "final-audit.md",
@@ -1035,7 +1037,10 @@ class ResearchSessionTests(unittest.TestCase):
             )
             self.assertEqual(section_args.func(section_args), 0)
 
-            for stage in research_session.WORKFLOW_STAGE_NAMES[3:]:
+            for stage in (
+                "insight_outline", "draft_complete", "structure_review",
+                "visualization_review", "humanized_draft", "evidence_final_audit",
+            ):
                 artifact = session / artifacts[stage]
                 if stage in research_session.AUDIT_STAGE_NAMES:
                     self.write_audit_artifact(session, stage)
@@ -1054,37 +1059,100 @@ class ResearchSessionTests(unittest.TestCase):
                     stage,
                     f"Loaded {research_session.WORKFLOW_STAGE_BY_NAME[stage]['skill']} and completed the required {stage} checks.",
                 )
+                if stage == "insight_outline":
+                    self.assertEqual(
+                        research_session.ready_workflow_stages(research_session.load_session(session)),
+                        ["visualization_review", "draft_complete"],
+                    )
+                if stage == "draft_complete":
+                    with self.assertRaisesRegex(SystemExit, "Ready stages"):
+                        self.complete_stage(session, "humanized_draft", "Attempt to polish the draft before its mandatory structure review.")
+                    with self.assertRaisesRegex(SystemExit, "Status: pass"):
+                        (session / "structure-review.md").write_text("# Review\nThe draft needs a structural review.\n", encoding="utf-8")
+                        self.complete_stage(session, "structure_review", "Attempt to approve a review without a passing review decision.")
 
             workflow = research_session.workflow_gate_result(session)
             self.assertEqual(workflow["status"], "pass")
-            self.assertIn(
-                "Substantive artifact produced for draft_complete.",
-                (session / "researched-draft.md").read_text(encoding="utf-8"),
-            )
-            self.assertNotEqual(
-                (session / "researched-draft.md").read_text(encoding="utf-8"),
-                (session / "draft.md").read_text(encoding="utf-8"),
-            )
+            valid_state = research_session.load_session(session)
+            for defect in ("duplicate", "unknown", "order"):
+                state = json.loads(json.dumps(valid_state))
+                records = state["workflow"]["completed"]
+                if defect == "duplicate":
+                    records.append(dict(records[-1]))
+                elif defect == "unknown":
+                    records.append({"stage": "unknown-stage", "skill": "deep-research"})
+                else:
+                    records.reverse()
+                research_session.save_session(session, state)
+                self.assertEqual(research_session.workflow_gate_result(session)["status"], "fail")
+            research_session.save_session(session, valid_state)
+            self.assertFalse((session / "researched-draft.md").exists())
             final_draft = session / "draft.md"
             final_draft.write_text("# Revised draft\n\nSame evidence with a clearer explanation.\n", encoding="utf-8")
-            self.assertEqual(research_session.workflow_gate_result(session)["status"], "fail")
+            self.assertEqual(research_session.workflow_gate_result(session)["status"], "pass")
             reopen = parser.parse_args([
                 "reopen-stage", "--session", str(session), "--stage", "evidence_final_audit",
                 "--note", "The final wording changed and must be checked again.",
             ])
             self.assertEqual(reopen.func(reopen), 0)
-            with self.assertRaisesRegex(SystemExit, "fingerprint"):
-                self.complete_stage(session, "evidence_final_audit", "Recheck the changed final wording against the original evidence.")
+            self.assertEqual(research_session.workflow_gate_result(session)["status"], "fail")
             self.write_audit_artifact(session, "evidence_final_audit")
             self.complete_stage(session, "evidence_final_audit", "Rechecked the changed final wording against the original evidence.")
             self.assertEqual(research_session.workflow_gate_result(session)["status"], "pass")
-            (session / "outline.md").write_text(
-                "# Outline\n\nChanged after the insight stage was recorded.\n",
+            (session / "draft.md").write_text(
+                "# Draft\n\nSubstantive writing changed after final approval.\n",
                 encoding="utf-8",
             )
-            workflow = research_session.workflow_gate_result(session)
-            self.assertEqual(workflow["status"], "fail")
-            self.assertTrue(any("Stage artifacts changed" in item for item in workflow["reasons"]))
+            reopen = parser.parse_args([
+                "reopen-stage", "--session", str(session), "--stage", "draft_complete",
+                "--note", "The writing changed and needs structure and final review again.",
+            ])
+            self.assertEqual(reopen.func(reopen), 0)
+            state = research_session.load_session(session)
+            self.assertIn("visualization_review", research_session.completed_stage_names(state))
+            self.assertNotIn("structure_review", research_session.completed_stage_names(state))
+            self.assertEqual(research_session.ready_workflow_stages(state), ["draft_complete"])
+            self.assertEqual(research_session.workflow_gate_result(session)["status"], "fail")
+            update = parser.parse_args([
+                "update-claim", "--session", str(session), "--claim-id", "C-0001",
+                "--claim", "The underlying interpretation changed and needs renewed evidence review.",
+            ])
+            self.assertEqual(update.func(update), 0)
+            state = research_session.load_session(session)
+            self.assertEqual(research_session.completed_stage_names(state), ["brief_confirmed", "research_plan"])
+            self.assertEqual(research_session.ready_workflow_stages(state), ["evidence_preoutline_audit"])
+
+    def test_legacy_required_stages_can_continue_without_new_stage(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            session = Path(temp) / "session"
+            parser = research_session.build_parser()
+            args = parser.parse_args(["init", "--session", str(session), "--title", "Legacy workflow"])
+            self.assertEqual(args.func(args), 0)
+            state = research_session.load_session(session)
+            state["schema_version"] = 3
+            state["workflow"]["required_stages"] = list(research_session.LEGACY_WORKFLOW_STAGE_NAMES)
+            research_session.save_session(session, state)
+            self.complete_opening_stages(session)
+            self.prepare_minimal_evidence(session)
+            for stage in research_session.LEGACY_WORKFLOW_STAGE_NAMES[2:]:
+                if stage == "insight_outline":
+                    args = parser.parse_args(["add-section", "--session", str(session), "--section", "Findings"])
+                    self.assertEqual(args.func(args), 0)
+                    args = parser.parse_args([
+                        "update-claim", "--session", str(session), "--claim-id", "C-0001",
+                        "--section", "Findings",
+                    ])
+                    self.assertEqual(args.func(args), 0)
+                if stage in research_session.AUDIT_STAGE_NAMES:
+                    self.write_audit_artifact(session, stage)
+                else:
+                    artifact = session / research_session.WORKFLOW_STAGE_BY_NAME[stage]["artifact"]
+                    artifact.write_text(f"# {stage}\n\nSubstantive work for the legacy {stage} stage.\n", encoding="utf-8")
+                self.complete_stage(session, stage, f"Completed the legacy {stage} stage and its required review work.")
+            self.assertEqual(research_session.workflow_gate_result(session)["status"], "pass")
+            state = research_session.load_session(session)
+            self.assertEqual(state["workflow"]["required_stages"], research_session.LEGACY_WORKFLOW_STAGE_NAMES)
+            self.assertTrue((session / "researched-draft.md").exists())
 
     def test_profiles_use_dynamic_targets_without_hard_fifty_source_floor(self) -> None:
         self.assertLess(

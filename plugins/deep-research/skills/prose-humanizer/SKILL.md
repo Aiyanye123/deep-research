@@ -12,7 +12,8 @@ before delivering a completed manuscript. Read and apply this guidance before
 drafting or rewriting as part of the required article-writing routine. Natural
 drafting does not replace the final pass. Flexible skill selection does not make
 structure review or expression polishing optional. Neither requires a style
-sheet, a completed audit, or two versions of the manuscript.
+sheet or two versions of the manuscript; the selected managed workflow separately
+records completed stages and final factual review.
 
 Final language polishing belongs to the lead agent, including in orchestration
 mode. Structural review may be delegated, and is assigned to a subagent in the
@@ -97,6 +98,33 @@ and accurate conditions rather than ornamental narration.
 
 ## Paragraphs And Whole-Text Rhythm
 
+For the final language pass, actively examine two recurring patterns across
+connected passages and rewrite them when present:
+
+- **Mechanical symmetry and aphoristic closure:** identify repeated paired
+  comparisons, escalating contrasts, matching clauses, parallel triplets, and
+  paragraph-ending maxims that announce the same judgment. Recast the passage
+  around the actual observation, action, cause, sequence, or consequence; change
+  sentence boundaries and paragraph movement where needed. Let long and short
+  sentences follow information and emphasis, with long sentences doing real
+  narrative or argumentative work. Merely exchanging connectives, synonyms, or
+  the order of the two halves leaves the pattern intact. Preserve a balanced
+  comparison when it conveys a necessary distinction; do not impose a replacement
+  rhythm or count-based ban.
+- **Defensive self-commentary and disclaimer padding:** remove passages whose
+  role is to excuse the writer's judgment, reassure an imagined opponent, assert
+  the writer's fairness, or announce that a distinction must be made without
+  explaining it. State the substantive distinction and its consequence directly
+  where it matters. Keep supported counterevidence and the actual scope of
+  uncertainty; do not mistake louder accusation or certainty for better prose.
+
+After these edits, reread the connected passage and its neighbors for natural
+movement, preserved meaning, and informative detail. A whole-text polish must
+actually address recurring patterns, not just label them or revise isolated
+phrases. Do not invent defects or change accurate source quotations to fit this
+guidance. Keep actual useful observations in the structural review when the
+pattern affects development; no additional language-check certificate is needed.
+
 Edit connected passages as well as individual sentences. Repeated paragraph
 patterns can make even fluent prose mechanical: a general judgment, an obligatory
 qualification or reversal, then a quotable verdict. Do not close every paragraph
@@ -178,8 +206,11 @@ voice, including purposeful irregularities; it does not require a conventional
 outline or a tidy resolution. Recheck affected meaning or facts after substantive
 edits and polish passages changed by corrections. A limited passage edit needs
 a contextual reading of that passage and its connections. No separate artifact
-or completion report is required for either action.
+or completion report is required in flexible operation. The default/full workflow
+records structural review and whole-text polish in the session defined by
+`deep-research`, with dependent work reopened after consequential edits.
 
 Deliver the edited text without process narration or extra management files.
-Older session-management tools remain optional only when the user explicitly
-selects that workflow.
+The default/full workflow uses the session runtime and its dependency-based
+gates; flexible work activates it only when requested or resuming a managed
+session. Neither mode calculates or verifies content fingerprints.

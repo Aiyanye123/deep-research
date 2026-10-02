@@ -68,7 +68,13 @@ data, aggregation, and uncertainty where they affect interpretation.
 
 State consequential problems and concrete corrections in a useful form for the
 task. Preserve source links or precise locations when they help verify a claim.
-A small note or table can help with a complicated dispute, but a claim ledger,
-separate audit files, fingerprints, stage commands, and a pass/fail gate are not
-default requirements. Older session-management tools are optional only when the
-user explicitly chooses that workflow.
+A small note or table can help with a complicated dispute. In the default/full
+workflow, retain the findings audit in `pre-outline-audit.md` and actual final
+checks and corrections in `final-audit.md`, following `deep-research`'s managed
+session rules. Read the actual current inputs; `audit-context` lists useful files
+without computing fingerprints. Record `Status: pass` and
+`Required revisions: none` only after resolving blocking issues. Independent checks may run in parallel,
+but the lead reconciles their implications before recording stage completion.
+After material changes, reopen the affected review and its dependent stages;
+no fingerprint detects edits automatically. Flexible operation needs no separate
+audit file or runtime gate unless managed operation is selected.

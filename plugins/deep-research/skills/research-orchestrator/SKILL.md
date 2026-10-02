@@ -17,6 +17,30 @@ predetermined answer. Return original-source locations, necessary excerpts and
 context, uncertainties, and evidence that could change the inquiry. The lead
 reads decisive material directly; routine retrieval does not need repeating.
 
+## Broader Discovery In The Complete Workflow
+
+Use independent retrieval branches to expand both coverage and the useful
+candidate-source pool, following `deep-research`'s full-workflow discovery rules.
+Set distinct remits and task-appropriate retrieval targets or ranges in
+`research-plan.md`, then gather more than the minimum familiar material needed
+for a draft. Targets guide effort and can change with corpus availability; they
+are not source quotas, validity gates, or a reason to pad results.
+
+Search complementary relevant perspectives, vocabularies, periods, languages,
+disciplines, source types, and competing explanations as the topic warrants.
+Follow references toward primary works, records, original interviews, datasets,
+or other original evidence. Open promising sources enough to judge relevance and
+locate useful material. Return usable originals and necessary context, including
+unexpected leads, rather than long lists of unopened results. Deduplicate shared
+evidence origins; repeated reporting does not enlarge the original-source pool.
+Honor user boundaries, including supplied-material-only tasks.
+
+The lead reviews the consolidated coverage, selects consequential originals for
+deep reading, and dispatches useful missing-perspective or follow-up searches
+before settling the core synthesis. Preserve useful candidates and actual gaps
+in the session files. Do not make the lead reread every result or equate a large
+collection with a well-supported article.
+
 ## Finding And Reading
 
 Use the method appropriate to the question; see `references/research-methods.md`
@@ -69,9 +93,16 @@ substantial searching and reading. Do not claim systematic or exhaustive coverag
 without the method and work it requires.
 
 Keep links, important locators, useful findings, and consequential unknowns in
-conversation context or concise working notes. Save them when the project needs
-resumption or handoff. No separate research-plan file, query log, source IDs,
-wave-completion records, saturation certificate, or gate command is required.
+conversation context or concise working notes. In the default/full workflow,
+update `research-plan.md` and the actual query, source, important claim, gap,
+and relevant anchor records in the managed session defined by `deep-research`.
+Keep useful original context and discoveries in `research-notes.md` when needed.
+Independent discovery tasks may finish in any order; consolidate results before
+writing shared records, complete waves only after their work, and run the evidence
+gate before committed structure and formal drafting.
+In flexible operation, save them when the project needs resumption or handoff.
+Flexible operation needs no query ledger, wave-completion records, separate
+research-plan file, or gate command unless the managed runtime is selected.
 
 Stop when the core inquiry has a supported answer and further work is unlikely
 to change it substantially. If sources are unavailable or a key issue cannot be

@@ -18,7 +18,20 @@ issues in focus, development, proportion, ordering, continuity, repetition, and
 source integration; propose changes with locations and reasons. Preserve original
 thinking, voice, purposeful ambiguity, and useful irregularities. Return review
 advice, not a rewritten or language-polished manuscript. The lead selects and
-implements revisions; no independent review file or problem quota is required.
+implements revisions. The complete workflow saves actual feedback and decisions
+in `structure-review.md`; flexible work needs no separate review file. No problem
+quota is required.
+
+During whole-manuscript review, examine connected passages for repeated paired
+comparisons, escalating contrasts, parallel clauses, and closing maxims that
+make the argument mechanically symmetrical or repeatedly announce a verdict.
+Also identify defensive self-commentary and disclaimer chains that interrupt
+the subject to protect the writer from imagined criticism. Locate consequential
+clusters and explain how they stall development or flatten rhythm; propose
+reorganization, direct explanation, or removal of redundant defenses. The lead
+implements structural changes and rewrites expression in the final language pass.
+Preserve distinctions, limits, counterevidence, and purposeful rhetorical choices
+that actually contribute meaning; no blanket construction ban is required.
 
 ## Developing Understanding
 
@@ -87,5 +100,11 @@ Keep uncertainty where it improves fidelity, without hedging every interpretive
 sentence or flattening the author's voice.
 
 For long or complex work, a short outline or section note can preserve continuity.
-No separate architecture form, section-card inventory, stage record, or approval
-gate is required. Let writing expose opportunities to change the structure.
+No extra architecture form or section-card inventory is required. Flexible work
+needs no stage record or approval gate. Let writing expose opportunities to
+change the structure; the full workflow's dependencies apply to committed
+stages, not to exploring ideas and tentative organization.
+In the default/full workflow, save the chosen organization in the session's
+`outline.md` and actual whole-manuscript review feedback with the lead's revision
+decisions in `structure-review.md`, under `deep-research`'s persistence rules.
+Do not reconstruct review work that did not occur or add an approval certificate.

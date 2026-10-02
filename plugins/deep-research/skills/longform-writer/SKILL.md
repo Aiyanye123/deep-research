@@ -103,9 +103,17 @@ polishes the resulting expression, rhythm, transitions, repetition, continuity,
 and fit to the work. Perform both actions even when the draft appears fluent.
 Do not require the lead to repeat the delegated structural audit as a separate
 stage; its full-text language pass and responsibility for revisions remain.
-No separate drafts or records are needed.
+No duplicate drafts are needed. Flexible operation needs no runtime stage
+records unless selected. In the default/full workflow,
+save the complete manuscript before structural review and update the canonical
+file after revision and final polishing, following `deep-research`'s managed
+session rules. Preserve useful review feedback and revision decisions in
+`structure-review.md`; respect a user-specified delivery path.
 Use focused factual checking for material risks and factual changes made during
 editing, protecting quotations, qualifications, and the meaning of conclusions.
 Deliver the complete requested text or agreed installment; do not attach management
-records unless the user needs them. Older session-management tools are available
-only when explicitly chosen, not a default drafting requirement.
+records inside the article. The default/full workflow uses the managed runtime:
+record `draft_complete`, obtain and implement actual structural review, then
+record `structure_review`, whole-text polish, and final factual review under the
+current dependency rules. Flexible operation does not require these runtime
+records unless selected or resuming a managed session. No fingerprints are used.

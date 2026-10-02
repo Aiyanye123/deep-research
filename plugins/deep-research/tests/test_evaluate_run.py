@@ -50,6 +50,40 @@ class EvaluateRunTests(unittest.TestCase):
             self.assertEqual(result["structural_checks"]["evidence_gate"]["status"], "fail")
             self.assertEqual(result["structural_checks"]["workflow_gate"]["status"], "fail")
 
+    def test_schema_four_reports_only_current_required_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            session = Path(temp) / "session"
+            self.create_session(session)
+            required_files = (
+                "brief.md", "research-plan.md", "pre-outline-audit.md", "outline.md",
+                "visuals.md", "draft.md", "structure-review.md", "final-audit.md",
+            )
+            for name in required_files:
+                (session / name).write_text("# Artifact\n\nSubstantive review or writing content.\n", encoding="utf-8")
+
+            result = evaluate_run.evaluate(session)
+            artifacts = result["structural_checks"]["report_artifacts_nonempty"]
+            self.assertEqual(set(artifacts), {
+                "brief", "research_plan", "pre_outline_audit", "outline",
+                "visuals", "draft", "structure_review", "final_audit",
+            })
+            self.assertTrue(all(artifacts.values()))
+            for name in ("insight-audit.md", "researched-draft.md", "continuity.md"):
+                self.assertFalse((session / name).exists())
+
+    def test_legacy_schema_keeps_existing_artifact_report_names(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            session = Path(temp) / "session"
+            self.create_session(session)
+            state = evaluate_run.research_session.load_session(session)
+            state["schema_version"] = 3
+            state["workflow"]["required_stages"] = list(evaluate_run.research_session.LEGACY_WORKFLOW_STAGE_NAMES)
+            evaluate_run.research_session.save_session(session, state)
+            artifacts = evaluate_run.evaluate(session)["structural_checks"]["report_artifacts_nonempty"]
+            self.assertEqual(set(artifacts), {
+                "brief", "outline", "insight_audit", "researched_draft", "draft", "continuity",
+            })
+
     def test_duplicate_anchors_are_telemetry_and_do_not_resolve_review(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
             session = Path(temp) / "session"

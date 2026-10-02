@@ -148,6 +148,17 @@ global errors. Judge their frequency and function under the selected profile.
 
 ## Rewrite Rules
 
+- Actively dismantle recurring mechanical symmetry and aphoristic closures
+  across connected passages. Rebuild sentences around the actual action,
+  sequence, cause, or consequence, adjusting sentence boundaries and paragraph
+  movement. Restore natural variation in length and emphasis; swapping paired
+  connectives or synonyms alone is insufficient. Keep a balanced comparison when
+  it conveys a necessary distinction, rather than banning sentence forms.
+- Delete defensive self-commentary, declarations of fairness, and disclaimer
+  padding addressed to imagined critics. Where a limit or distinction changes
+  the judgment, state its substance and consequence directly by the relevant
+  claim. Preserve actual uncertainty and counterevidence. Reread the revised
+  passage with its neighbors for rhythm, continuity, and preserved meaning.
 - Prioritize natural, concrete, accurate Chinese. Use precise verbs, meaningful
   details, and judgments with reasons. Language should serve the content.
 - Replace empty praise such as "很高级" or "很有感觉" with the observable

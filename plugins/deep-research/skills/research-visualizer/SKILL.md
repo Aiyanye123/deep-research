@@ -79,6 +79,11 @@ the intended size and that surrounding prose says no more than the data supports
 
 Place the figure near the passage it clarifies and preserve the data and source
 information needed to understand or reproduce it. Recheck affected parts when a
-figure changes; no stage command, evidence ledger, or separate audit file is a
-default requirement. Older session-management tools are available only when the
-user explicitly chooses that workflow.
+figure changes. In the default/full workflow, retain the visual decision and
+relevant source/method information in `visuals.md` and complete
+`visualization_review` under the current session's dependencies. This can run
+alongside drafting; figure production may be delegated, but the lead checks
+finished assets and their integration before whole-text polish and final review.
+A text-only decision needs a concise actual explanation in `visuals.md`, not a
+decorative figure. Flexible operation requires no stage record or separate visual
+file unless managed operation is selected. No fingerprints are used.

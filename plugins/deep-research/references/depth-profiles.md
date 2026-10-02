@@ -5,8 +5,16 @@ consequences. A narrow question may have a few decisive sources; a broad synthes
 may require extensive reading across fields or contexts. Long-form work needs
 enough substance to develop the requested length without repetition.
 
-There is no default quota for sources, queries, domains, textual anchors, waves,
-or counterarguments. Do not inflate activity counts or use them as proof of depth.
+Flexible work has no default source or query quota. Explicit full-workflow work
+uses managed-session waves, source records, and task-adjusted effort goals.
+For substantial work normally begin with deep's target of 60 useful opened
+sources; standard targets 30, and a constrained or narrow corpus can justify a
+different target. Complementary delegated searches should increase coverage and
+the candidate-original pool. The lead selects decisive sources for deep reading.
+Do not count unopened results or derivative copies as equivalent originals.
+Counts alone do not establish support; schema 3 and later treat numerical
+shortfalls as research-review warnings, while actual evidence blockers must be
+resolved. Never inflate activity to satisfy a target.
 
 ## What Makes Further Work Worthwhile
 
@@ -28,6 +36,8 @@ unlikely to improve it materially. If a tractable unknown could still change the
 conclusion, pursue it. If evidence is unavailable, acknowledge the limit and
 adjust the conclusion rather than pretending the question is settled.
 
-This judgment needs no saturation certificate or mandatory final search waves.
-Optional managed-runtime budgets and numerical policies remain defined by that
-runtime; they do not govern the default research workflow.
+In full-workflow managed sessions, record the actual saturation assessment and
+follow-up checks under the runtime's waves before running the evidence gate.
+Flexible operation does not need a saturation record or required waves unless
+managed operation is selected. Unavailable evidence should lead to an honest
+limitation or narrower conclusion, not invented records.
