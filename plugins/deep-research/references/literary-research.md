@@ -35,3 +35,15 @@ essay; every section need not follow a claim-evidence-counterclaim template.
 The final article may use existing criticism as context and may conclude that a
 question remains open. Distinguish textual observation, interpretation, and
 external context throughout.
+
+## From Close Reading to Criticism
+
+- **Connect form to experience:** When analyzing framing, editing, syntax, sound,
+  or pacing, state what the formal choice changes for the reader or viewer—what
+  it delays, sharpens, conceals, or destabilizes—instead of only naming a device.
+- **Weave summary into the inquiry:** Recount only the slice of scene or plot
+  needed to ground the point. Track where recurring motifs return and how their
+  meaning shifts across the work.
+- **State earned judgments plainly:** You do not need to leave every point
+  implicit in details; state critical judgments directly when the reading supports
+  them, while letting complicating details keep mixed tone or open questions intact.

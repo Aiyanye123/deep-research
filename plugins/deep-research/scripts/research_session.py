@@ -1586,6 +1586,11 @@ def complete_stage_command(args: argparse.Namespace) -> int:
         "note": note,
         "completed_at": utc_now(),
     }
+    if args.stage in {"structure_review", "evidence_final_audit"}:
+        record["reviewed_mtimes_ns"] = {
+            name: (path / name).stat().st_mtime_ns if (path / name).exists() else None
+            for name in ("draft.md", "sources.jsonl")
+        }
     if skip_request:
         record["skip_questions_request"] = skip_request
     state["workflow"]["completed"].append(record)
@@ -1595,6 +1600,25 @@ def complete_stage_command(args: argparse.Namespace) -> int:
     append_jsonl(path / "stage-log.jsonl", record)
     print(json.dumps(record, ensure_ascii=False, indent=2))
     return 0
+
+
+def review_change_warnings(path: Path, workflow: dict) -> list[str]:
+    warnings = []
+    for record in workflow["completed"]:
+        reviewed = record.get("reviewed_mtimes_ns")
+        if not isinstance(reviewed, dict):
+            continue
+        for name in ("draft.md", "sources.jsonl"):
+            if name not in reviewed:
+                continue
+            artifact = path / name
+            current = artifact.stat().st_mtime_ns if artifact.exists() else None
+            if current != reviewed[name]:
+                warnings.append(
+                    f"{name} timestamp changed since {record['stage']}; "
+                    "inspect the change and reopen affected stages if needed."
+                )
+    return warnings
 
 
 def workflow_gate_result(path: Path) -> dict:
@@ -1686,6 +1710,7 @@ def workflow_gate_result(path: Path) -> dict:
         "status": status,
         "checked_at": utc_now(),
         "reasons": reasons,
+        "warnings": review_change_warnings(path, workflow),
         "next_actions": list(dict.fromkeys(actions)),
         "metrics": {
             "completed_stages": len(completed_set),
@@ -1753,7 +1778,7 @@ def status_command(args: argparse.Namespace) -> int:
         "next_workflow_stage": next_workflow_stage(state),
         "ready_stages": ready_workflow_stages(state),
         "metrics": result["metrics"],
-        "warnings": result["warnings"],
+        "warnings": result["warnings"] + workflow["warnings"],
         "next_actions": workflow["next_actions"] or result["next_actions"],
     }
     print(json.dumps(output, ensure_ascii=False, indent=2))

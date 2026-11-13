@@ -242,6 +242,7 @@ inspect the visible material or use available OCR; for data, understand columns,
 units, and definitions. Do not infer unseen pages, unreadable text, hidden sheets,
 or unsupported file contents. If an essential input cannot be accessed, ask for
 the missing material in an accessible form and state the actual limitation.
+For consequential extraction details, consult `references/material-extraction.md`.
 
 Use only the supplied material when the user requests that boundary. Otherwise
 choose external research according to the task and clarify its role in the opening
@@ -422,6 +423,13 @@ folder. Reuse the session when continuing the same task; use a distinct director
 for a new task if the name already exists. Preserve existing files. An explicit
 request not to save files overrides this default. In flexible operation, decide
 whether persistence helps with length, resumption, or handoff; it is not mandatory.
+For medium-sized flexible work where persistence helps, offer or use a lightweight
+session: create `brief.md`, `notes.md`, and `draft.md` in a task directory after
+intake. Keep the agreed direction in the brief; put source links, exact locators,
+key findings and open questions in notes; maintain the current manuscript in draft.
+Reuse existing files and honor user file and location constraints. This preset has
+no managed runtime or gates; continue actual source checks, structural review,
+and polishing. Do not replace an existing managed session with these three files.
 
 Read `references/session-schema.md` before creating or resuming a managed session.
 Use `scripts/research_session.py init` for a new directory without `--force`; use

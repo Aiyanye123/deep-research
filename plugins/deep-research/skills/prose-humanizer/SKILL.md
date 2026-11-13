@@ -27,12 +27,15 @@ explicit user restrictions; no second structural-audit stage is required.
 ## Let The Material Set The Voice
 
 Consider the genre, subject, reader relationship, and user's examples. When a
-sample is available, observe sentence rhythm, paragraph movement, diction,
-punctuation, opinion, and useful irregularities without copying its content.
-Infer what makes the sample work across passages: how it selects details, holds
-a viewpoint, develops reasons, and lets a reader experience the subject. Do not
-imitate its conspicuous phrases, metaphor density, or intensity of assertion.
-Keep sample-specific content in the current task, not in reusable style rules.
+sample is available, observe—as relevant to the piece—sentence rhythm, paragraph
+movement, diction, punctuation, narrative distance, how sources or scenes are
+woven in, how sections open and close, opinion, and useful irregularities without
+copying its content. Infer what makes the sample work across passages: how it
+selects details, holds a viewpoint, develops reasons, and lets a reader experience
+the subject. Do not turn observation into a mandatory checklist or word-class
+quota, and do not imitate conspicuous phrases, metaphor density, or intensity of
+assertion. Keep sample-specific content in the current task, not in reusable
+style rules.
 When comparing an original and a preferred rewrite, distinguish improvements in
 voice and movement from added facts, changed interpretations, and stronger claims.
 Learn the useful editorial choices without treating every change as a stylistic
@@ -73,9 +76,9 @@ Do not replace them with another uniform prose pattern.
 
 Preserve concrete details, defensible judgment, unresolved tension, and meaningful
 irregularities. First person can be useful in an essay, but never invent personal
-experience. Repetition can help formal or technical precision. Punctuation,
-contrast, headings, and a measured rhythm are not defects merely because a
-checker recognizes them.
+experience in non-fiction or criticism. Repetition can help formal or technical
+precision. Punctuation, contrast, headings, and a measured rhythm are not defects
+merely because a checker recognizes them.
 
 Literary readings should retain close attention, multiple meanings, and a voice
 that takes interpretive responsibility. They need not become neutral summaries or
@@ -178,6 +181,15 @@ connected passage, not just the final words. This is editorial attention, not a
 counting rule, ban list, or separate audit. Keep the requested scope and substance.
 
 ## Preserve Factual Meaning
+
+Distinguish non-fiction from explicitly requested creative or fictional writing.
+In research, reporting, criticism, and essays, never invent scenes, dialogue,
+inner monologue, weather, or firsthand experience to heighten mood. When the user
+explicitly asks for fiction, scripts, or creative narrative, invent scenes and
+character logic freely within the user's constraints on characters, setting, and
+rewrite scope; if the work draws on real people or historical events, keep
+verifiable facts distinguishable from fictionalized elements, and still avoid
+unearned melodrama, stock epiphanies, and decorative adjective stacking.
 
 Keep quotations, citation links, names, dates, numbers, units, formulas, technical
 terms, material conditions, and source boundaries accurate. Preserve the logic

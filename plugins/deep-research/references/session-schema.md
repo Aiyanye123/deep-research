@@ -7,6 +7,12 @@ workflow's dependencies; existing sessions preserve their recorded required
 stages. There are no content fingerprints or hash comparisons. Historical
 fingerprint fields are ignored and are not rewritten or verified.
 
+For flexible work, the optional lightweight preset is a task directory containing
+`brief.md` (direction and constraints), `notes.md` (findings, source locators and
+open questions), and `draft.md` (current manuscript). It does not use this managed
+runtime or its gates; preserve existing files and the required writing and checking
+actions. See the main skill for when to use it.
+
 After answered or explicitly waived intake and direction selection, use
 `scripts/research_session.py init --session <path> --title <title> --depth deep`
 to create a new session directory. Use `resume` for an existing session, never
@@ -98,7 +104,12 @@ records. Structural review and evidence audits require `Status: pass` and
 Read and assess the actual current manuscript and sources. No file or marker
 proves that the reviewer did this or that the conclusion is sound.
 
-There is no automatic detection of direct file edits. After a meaningful change
+For newly completed structural and final reviews, `status` and `workflow-gate`
+warn when the recorded modification time of `draft.md` or `sources.jsonl` changes.
+These are advisory signals, not gate failures: normal polishing or metadata-only
+changes can trigger them, and timestamps can miss changes. Older reviews have no
+baseline. Examine the current material; do not treat an absent warning as proof.
+After a meaningful change
 to sources, interpretation, manuscript, or figures, the lead identifies affected
 work and uses `reopen-stage --session <path> --stage <stage> --note "<reason>"`.
 It removes that stage and its dependency descendants while preserving unrelated

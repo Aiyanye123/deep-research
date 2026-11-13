@@ -56,6 +56,72 @@ specifications, and documentation-like research.
 - Use repetition when it prevents ambiguity. Terminological consistency outranks
   stylistic variation.
 
+## Citations in Chinese Prose
+
+Follow the user's, publisher's, or discipline's citation style first. Otherwise,
+put a concise attribution or hyperlink near the supported claim; name the author,
+organization, document, and date when they matter to interpretation. Use notes
+or a reference list for bibliographic detail when the format supports them, while
+keeping the connection between claim and source clear. Group citations only when
+their coverage is unambiguous. A direct quotation must be exact and locatable;
+identify a translation as such. Do not cite an inaccessible original as read or
+let moving a citation change which claim it supports.
+
+The optional `scripts/check_chinese_prose.py` diagnostic accepts `--language en`
+for English paragraph-edge repetition warnings. For either language, `--terms`
+accepts a UTF-8 JSON object mapping a label to a list of known equivalent names,
+for example `{"SQLite": ["SQLite", "某数据库译名"]}`. A warning only flags
+co-occurrence; bilingual introductions and justified variants can be intentional.
+
+## Examples of Movement and Attribution
+
+The examples below are invented to show technique, not evidence or templates.
+Use actual sources, exact locators, and verified claims in a real article; the
+first-person narrative example applies only to explicitly requested creative or
+fictional writing, never to non-fiction.
+
+- **Reported feature:** Weak: “项目进展显著，居民生活得到改善。” Better:
+  “按某公交公司 2025 年冬季运营月报，7 路早班车从两班增至四班后，西站几位每周去市医院复诊的老人候车时间从四十分钟缩到十来分钟；不过晚高峰跨区段的返程车仍常要等两趟才挤得上。”
+  Name the record and interviewees, connect operational change to lived effect,
+  and keep the remaining limit visible instead of listing sources one by one.
+- **Technical analysis:** Weak: “这个设置可以解决并发问题。” Better:
+  “在单写者锁模式下（见引擎手册第 4 节），两个连接同时写入时，第二个连接会因等待锁而阻塞；把写事务拆短能压缩占锁窗口，但无法消除高并发持续写入下的排队瓶颈。”
+  Cite the relevant specification, explain the condition and mechanism, and
+  state where the fix stops working.
+- **Research review:** Weak: “研究一致证明工具提高效率。” Better:
+  “A 团队 2024 年的实验室对照实验（N=48）测得单次检索耗时缩短约两成；B 团队 2025 年对医院科室的半年现场追踪则显示，因交接审批未改，日均总工时变化不大。两项研究的任务边界与周期不同，不能直接合并。”
+  Identify each study with its design and scope before comparing conclusions.
+- **Cultural criticism:** Weak: “人物的沉默体现了深刻的孤独。” Better:
+  “第三幕客厅聚会那场戏里，众人刚把话头转向他，他便低头去整袖口，直到旁人另起话题才抬眼；他用这几秒钟把反应藏进动作里，场上的尴尬也就留在了对话之外。”
+  Anchor the scene, move from concrete detail to tension in the work itself, and
+  avoid meta-commentary such as “让读者看到”.
+- **Film or literary commentary (invented):** Weak: “导演用精妙的剪辑和压抑的配乐，深刻揭露了现代人的异化。”
+  Better: “饭局散场那段戏（约第 68 分钟），镜头没有切去主角的脸，而是盯着桌上凉透的残羹摇了将近二十秒；门外电梯的提示音一声接一声，屋里始终没人去关灯，把原本还勉强维持的体面晾在原地，观众也跟着一起等这场尴尬自己垮掉。”
+  Anchor the moment, state what camera and sound do, and show how that formal
+  choice shifts the scene's relationship or viewing experience.
+- **Creative or fictional narrative (invented; explicitly authorized fiction only):**
+  Weak: “站在空荡的站台上，我突然明白了时间流逝的无情与生命的珍贵。”
+  Better: “末班车开走后，站台灯熄掉一半，售票亭玻璃上还贴着去年的春运时刻表。我把围巾又绕了一圈，沿着站外那排还没拆的旧围挡往回走。”
+  Only for explicitly requested fiction or creative writing—never invent scenes
+  or first-person experience in non-fiction; let environment and physical action
+  carry mood instead of announcing an abstract epiphany.
+
+## Literary Craft Options
+
+Use these options when the material and purpose call for them; direct judgment
+openings, explicit explanation of how a detail supports a point, and settled
+conclusions remain valid whenever the piece needs them.
+
+- **调节叙述距离：** 按文章需要决定贴近现场、紧贴文本细部，还是退后半步作对照；
+  态度可以通过选材、停顿和词义轻重带出，不必每段都由作者出面表态。
+- **并置与延迟转折：** 除显式转折词外，也可把不同处境的事实、前后呼应的细节或
+  表面一致却彼此错位的材料并排摆放，让反差自己推进问题。
+- **母题回环与留白：** 适合长文或随笔时，可以让同一物象、动作或说法在后文换个
+  处境再出现，借含义偏移组织段落；需要点明它与论点的关系时直接说清，适合留白
+  收束时则不必再补一句总结。
+- **守住语体质感：** 白话主干里可适度借用口语节奏或简洁书面词，但全篇应保持同一套
+  语体底色，避免中途突然滑入翻译腔或生硬的术语堆砌。
+
 ## Material-Driven Writing
 
 Use the material and actual sources already collected. Research and writing can
@@ -66,8 +132,10 @@ intake or creating a second formal workflow.
   build atmosphere, pacing, or ambiguity where the genre benefits; each paragraph
   need not prove a registered claim. Remove repetition that adds no meaning.
 - If a consequential assertion lacks support, check the relevant source or
-  adjust the claim. Do not invent examples, scenes, consensus, quotations, or user
-  experience, and do not silently shorten the requested deliverable.
+  adjust the claim. In research, criticism, and non-fiction, do not invent
+  examples, scenes, consensus, quotations, or user experience (only explicitly
+  requested fiction or creative storytelling may invent scenes); do not silently
+  shorten the requested deliverable.
 - In literary criticism, let specific scenes, formal features, dialogue, editing,
   framing, sound, omissions, or textual contrasts support interpretation.
 - In formal and technical work, distinguish observed fact, source claim,
@@ -84,8 +152,10 @@ Before drafting, identify internally:
 - What a reader will naturally need to know after each section.
 
 Do not fabricate having watched, interviewed, tested, visited, or experienced
-something. First person may express a defensible judgment or describe a real
-research action, but it must not create false firsthand authority.
+something in research, reporting, or criticism; only explicitly requested
+fiction or creative storytelling may invent scenes or persona. First person in
+non-fiction may express a defensible judgment or describe a real research action,
+but it must not create false firsthand authority.
 
 ## Build Natural Movement
 
@@ -162,8 +232,9 @@ global errors. Judge their frequency and function under the selected profile.
 - Prioritize natural, concrete, accurate Chinese. Use precise verbs, meaningful
   details, and judgments with reasons. Language should serve the content.
 - Replace empty praise such as "很高级" or "很有感觉" with the observable
-  feature, action, contrast, or effect that supports the judgment. Use actual
-  material; do not invent a detail to make a sentence sound concrete.
+  feature, action, contrast, or effect that supports the judgment. In research,
+  criticism, and non-fiction, use actual material and do not invent a detail to
+  make a sentence sound concrete.
 - Cut stock phrases, bureaucratic voice, business jargon, invented labels, and
   degree adverbs that add no information. Rhetoric, abstractions, and grand
   evaluations must not substitute for explaining the subject.

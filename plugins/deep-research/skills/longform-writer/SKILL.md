@@ -11,17 +11,9 @@ send the work back to sources or interpretation. An outline is useful when it
 helps; neither a completed evidence ledger nor another skill's approval is a
 prerequisite to writing.
 
-Always carry out the article-writing routine in `deep-research`: establish focus
-and organization, draft through the material, review and revise the completed
-structure, then polish language and check affected meaning. These actions are
-required even when the plugin's other skills are selected as needed. Read
-`prose-humanizer` before drafting and use it again for the final pass; do not
-reserve all of its guidance for sentence cleanup after the article is written.
-Keep manuscript drafting with the lead; do not default to parallel chapter
-writing from research summaries. In the complete workflow, obtain a subagent's
-whole-manuscript structural review using `insight-architect`. The lead decides
-and implements changes and performs final language polishing using
-`prose-humanizer`. Follow the same authorship boundaries in orchestration mode.
+Follow `deep-research`'s article-writing routine and authorship boundaries:
+read `prose-humanizer` before drafting, review the completed structure, then
+polish and check affected meaning. These actions also apply in flexible work.
 
 ## Shape The Work
 
@@ -96,24 +88,6 @@ template, a note after every chapter, or separate style and visual manifests.
 
 ## Finish The Deliverable
 
-After completing the manuscript, read and use `prose-humanizer` for the required
-final reading and polishing pass. First obtain the structural review under the
-division of labor and implement useful revisions; then the lead reads and
-polishes the resulting expression, rhythm, transitions, repetition, continuity,
-and fit to the work. Perform both actions even when the draft appears fluent.
-Do not require the lead to repeat the delegated structural audit as a separate
-stage; its full-text language pass and responsibility for revisions remain.
-No duplicate drafts are needed. Flexible operation needs no runtime stage
-records unless selected. In the default/full workflow,
-save the complete manuscript before structural review and update the canonical
-file after revision and final polishing, following `deep-research`'s managed
-session rules. Preserve useful review feedback and revision decisions in
-`structure-review.md`; respect a user-specified delivery path.
-Use focused factual checking for material risks and factual changes made during
-editing, protecting quotations, qualifications, and the meaning of conclusions.
-Deliver the complete requested text or agreed installment; do not attach management
-records inside the article. The default/full workflow uses the managed runtime:
-record `draft_complete`, obtain and implement actual structural review, then
-record `structure_review`, whole-text polish, and final factual review under the
-current dependency rules. Flexible operation does not require these runtime
-records unless selected or resuming a managed session. No fingerprints are used.
+Follow `deep-research` for structural review, final polishing, factual checks,
+and managed-session records. Preserve the requested delivery path and deliver
+the complete text or agreed installment without management records in the article.

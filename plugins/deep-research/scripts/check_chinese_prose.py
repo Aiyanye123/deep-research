@@ -307,11 +307,76 @@ def rhythm_findings(original: str, prose: str) -> list[Finding]:
     ]
 
 
-def analyze(text: str, profile: str) -> list[Finding]:
+def repeated_paragraph_edges(original: str, prose: str, language: str) -> list[Finding]:
+    paragraphs = []
+    for match in re.finditer(r"[^\n]+(?:\n(?!\s*\n)[^\n]+)*", prose):
+        value = match.group().strip()
+        if value and not value.startswith("#"):
+            paragraphs.append((match.start(), value))
+    findings = []
+    for edge in ("opening", "ending"):
+        previous = None
+        count = 0
+        start = 0
+        for position, value in paragraphs:
+            if language == "en":
+                words = re.findall(r"[A-Za-z]+", value.lower())
+                key = ()
+                if len(words) >= 6:
+                    key = tuple(words[:2] if edge == "opening" else words[-2:])
+            else:
+                chars = re.findall(r"[\u4e00-\u9fff]", value)
+                key = ()
+                if len(chars) >= 12:
+                    key = tuple(chars[:4] if edge == "opening" else chars[-4:])
+            if key and key == previous:
+                count += 1
+            else:
+                previous, count, start = key, 1, position
+            if key and count == 3:
+                findings.append(Finding(
+                    "warning", f"repeated-paragraph-{edge}", line_number(original, start),
+                    "Three consecutive paragraphs share wording at the same edge; review in context.",
+                    " ".join(key) if language == "en" else "".join(key),
+                ))
+    return findings
+
+
+def terminology_findings(
+    original: str, prose: str, groups: dict[str, list[str]]
+) -> list[Finding]:
+    findings = []
+    for label, variants in groups.items():
+        matches = []
+        for variant in variants:
+            pattern = re.escape(variant)
+            if variant[0].isascii() and variant[0].isalnum():
+                pattern = r"(?<![A-Za-z0-9])" + pattern
+            if variant[-1].isascii() and variant[-1].isalnum():
+                pattern += r"(?![A-Za-z0-9])"
+            match = re.search(pattern, prose, re.IGNORECASE)
+            if match:
+                matches.append((match.start(), variant))
+        if len(matches) > 1:
+            findings.append(Finding(
+                "warning", "terminology-variants", line_number(original, min(matches)[0]),
+                f"Review explicitly supplied variants for {label}; a bilingual introduction may be intentional.",
+                ", ".join(variant for _, variant in matches),
+            ))
+    return findings
+
+
+def analyze(
+    text: str, profile: str, language: str = "zh", terms: dict[str, list[str]] | None = None
+) -> list[Finding]:
     if profile not in PROFILES:
         raise ValueError(f"Unknown profile: {profile}")
     prose = mask_protected(text)
     findings = []
+    findings.extend(repeated_paragraph_edges(text, prose, language))
+    findings.extend(terminology_findings(text, prose, terms or {}))
+    if language == "en":
+        return sorted(findings, key=lambda item: (item.line, item.code))
     findings.extend(
         term_findings(
             text,
@@ -420,6 +485,8 @@ def main() -> int:
     )
     parser.add_argument("path", help="Markdown/text path, or - for stdin")
     parser.add_argument("--profile", choices=PROFILES, required=True)
+    parser.add_argument("--language", choices=("zh", "en"), default="zh")
+    parser.add_argument("--terms", help="JSON file mapping labels to lists of equivalent terms")
     parser.add_argument("--json", action="store_true", dest="as_json")
     args = parser.parse_args()
 
@@ -428,11 +495,25 @@ def main() -> int:
     except (OSError, UnicodeError) as error:
         print(f"无法读取稿件：{error}", file=sys.stderr)
         return 2
-    if not re.search(r"[\u4e00-\u9fff]", text):
+    if args.language == "zh" and not re.search(r"[\u4e00-\u9fff]", text):
         print("没有检测到中文正文。", file=sys.stderr)
         return 2
 
-    findings = analyze(text, args.profile)
+    terms = {}
+    if args.terms:
+        try:
+            terms = json.loads(read_text(args.terms))
+            if not isinstance(terms, dict) or any(
+                not isinstance(label, str) or not isinstance(variants, list)
+                or any(not isinstance(item, str) or not item.strip() for item in variants)
+                for label, variants in terms.items()
+            ):
+                raise ValueError("Expected an object mapping labels to lists of nonempty strings")
+        except (OSError, UnicodeError, ValueError) as error:
+            print(f"无法读取术语表：{error}", file=sys.stderr)
+            return 2
+
+    findings = analyze(text, args.profile, args.language, terms)
     failures = [item for item in findings if item.level == "failure"]
     warnings = [item for item in findings if item.level == "warning"]
 

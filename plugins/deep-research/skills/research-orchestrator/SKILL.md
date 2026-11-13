@@ -35,6 +35,12 @@ unexpected leads, rather than long lists of unopened results. Deduplicate shared
 evidence origins; repeated reporting does not enlarge the original-source pool.
 Honor user boundaries, including supplied-material-only tasks.
 
+When multiple branches are useful and the question warrants it, give one an
+explicit remit to seek counterexamples, competing explanations, applicability
+limits, or failure cases. Return its sources and what they change, even when the
+search finds no material counterevidence. Do not manufacture a branch or a false
+balance for a task where it would add no value.
+
 The lead reviews the consolidated coverage, selects consequential originals for
 deep reading, and dispatches useful missing-perspective or follow-up searches
 before settling the core synthesis. Preserve useful candidates and actual gaps
@@ -71,6 +77,23 @@ narrow or repetitive. Read consequential sources rather than relying on snippets
 Follow evidence origins where independence matters: many reports of one dataset
 remain one evidence chain. Consider definitions, periods, populations, methods,
 versions, and incentives before comparing or generalizing findings.
+
+For a consequential claim encountered in a Chinese secondary account of foreign
+material, use it as a lead: extract names, original-language terms, dates and
+figures, and trace them to the relevant original paper, official release, filing,
+standard, or dataset when external research is permitted. Read the pertinent
+passage and check translation, units, context, version, and date before citing it.
+Attribute the version and date where they affect the claim. Do not claim to have
+verified an original that was not accessible or understood.
+
+Identify shared origins in syndicated press releases, media summaries of one
+report, and different visualizations of one dataset. Treat each as one evidence
+chain, not independent corroboration; record a shared `origin` when using managed
+source records. If an original is paywalled, login-restricted, blocked, or otherwise
+unavailable, seek a legally accessible original, official record, or independent
+primary evidence first. If none is available, identify the accessible secondary
+source and its limitations, narrow or omit the affected conclusion, and do not
+imply direct access. Respect access restrictions and user source boundaries.
 
 ## Thinking During Research
 

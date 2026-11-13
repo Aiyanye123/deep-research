@@ -22,16 +22,9 @@ implements revisions. The complete workflow saves actual feedback and decisions
 in `structure-review.md`; flexible work needs no separate review file. No problem
 quota is required.
 
-During whole-manuscript review, examine connected passages for repeated paired
-comparisons, escalating contrasts, parallel clauses, and closing maxims that
-make the argument mechanically symmetrical or repeatedly announce a verdict.
-Also identify defensive self-commentary and disclaimer chains that interrupt
-the subject to protect the writer from imagined criticism. Locate consequential
-clusters and explain how they stall development or flatten rhythm; propose
-reorganization, direct explanation, or removal of redundant defenses. The lead
-implements structural changes and rewrites expression in the final language pass.
-Preserve distinctions, limits, counterevidence, and purposeful rhetorical choices
-that actually contribute meaning; no blanket construction ban is required.
+In structural review, locate repeated verdicts or defensive passages that stall
+the argument, and explain how reordering or cutting them would help. Preserve
+meaningful distinctions, counterevidence, and purposeful rhetorical choices.
 
 ## Developing Understanding
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -15,6 +16,25 @@ SPEC.loader.exec_module(research_session)
 
 
 class ResearchSessionTests(unittest.TestCase):
+    def test_review_timestamps_warn_without_invalidating_or_requiring_legacy_baselines(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp)
+            draft = path / "draft.md"
+            draft.write_text("draft", encoding="utf-8")
+            baseline = draft.stat().st_mtime_ns
+            workflow = {"completed": [
+                {"stage": "structure_review", "reviewed_mtimes_ns": {
+                    "draft.md": baseline, "sources.jsonl": None,
+                }},
+                {"stage": "evidence_final_audit"},
+            ]}
+            self.assertEqual(research_session.review_change_warnings(path, workflow), [])
+            os.utime(draft, ns=(baseline + 1_000_000_000, baseline + 1_000_000_000))
+            warnings = research_session.review_change_warnings(path, workflow)
+            self.assertEqual(len(warnings), 1)
+            self.assertIn("draft.md", warnings[0])
+            self.assertIn("structure_review", warnings[0])
+
     def complete_stage(self, session: Path, stage: str, note: str) -> None:
         args = research_session.build_parser().parse_args(
             [

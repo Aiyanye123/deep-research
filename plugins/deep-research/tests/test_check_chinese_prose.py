@@ -16,6 +16,21 @@ SPEC.loader.exec_module(check_chinese_prose)
 
 
 class ChineseProseCheckerTests(unittest.TestCase):
+    def test_english_repetition_and_explicit_term_variants_are_warnings(self) -> None:
+        text = (
+            "The system handles concurrent reads with SQLite.\n\n"
+            "The system keeps the database ready for requests.\n\n"
+            "The system stores records in the 示例数据库."
+        )
+        findings = check_chinese_prose.analyze(
+            text, "technical", "en", {"database": ["SQLite", "示例数据库"]}
+        )
+        self.assertEqual(
+            {item.code for item in findings},
+            {"repeated-paragraph-opening", "terminology-variants"},
+        )
+        self.assertTrue(all(item.level == "warning" for item in findings))
+
     def test_formal_profile_allows_normal_colon_and_date_range(self) -> None:
         text = (
             "研究范围：2019—2023 年中国城市公共交通投入。"
