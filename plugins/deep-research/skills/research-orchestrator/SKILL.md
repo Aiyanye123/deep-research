@@ -74,6 +74,15 @@ as needed. These are research moves, not five mandatory waves. Change search ter
 disciplines, historical comparisons, or source types when the current path becomes
 narrow or repetitive. Read consequential sources rather than relying on snippets.
 
+Search-result snippets, aggregated summaries, and unresolved redirect links are
+discovery leads, not verification. For central factual claims, open the relevant
+original filing, announcement, dataset, publication, or other primary material
+when available and permitted, and retain a direct usable location and the relevant
+passage or data reference. If it cannot be opened, seek an accessible primary
+alternative; otherwise attribute a secondary account accurately, narrow the claim
+or omit it, and disclose the material limitation. Never claim primary verification
+from an unopened result. Respect file-only and other user source restrictions.
+
 Follow evidence origins where independence matters: many reports of one dataset
 remain one evidence chain. Consider definitions, periods, populations, methods,
 versions, and incentives before comparing or generalizing findings.

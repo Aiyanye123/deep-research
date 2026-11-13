@@ -10,6 +10,20 @@ skill when a factual question, disputed conclusion, citation, or substantive edi
 needs attention; it is not a mandatory review at every stage. Research,
 explanation, writing, and checking can develop together.
 
+In lightweight work involving news facts, financial or business data, or strong
+causal claims or forecasts, perform a focused check before delivery. Assign it to an
+auditor who did not draft the manuscript when subagents are available and
+permitted. Select three to five of the most consequential supporting facts, or
+all of them if fewer exist, and check the core inferences they support. Read the
+actual primary sources and current draft directly, not just notes or search snippets. For each, check
+whether the primary source was actually accessible and read, and whether the
+inference goes beyond what the evidence establishes. If an original is unavailable,
+inspect the best accessible source, identify its level and limits, and require
+accurate attribution and a narrower claim or omission. Return source locations and
+material corrections to the lead, who revises the draft. If independent delegation
+is unavailable or prohibited, the lead performs the check and states that no
+independent review occurred. No separate audit file, gate, or approval is required.
+
 Focused factual verification is delegated in the complete Deep Research workflow
 when the checks justify a separate assignment. Read the actual sources and
 current manuscript passages, not only another agent's paraphrase or an earlier

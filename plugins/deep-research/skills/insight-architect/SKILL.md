@@ -26,6 +26,16 @@ In structural review, locate repeated verdicts or defensive passages that stall
 the argument, and explain how reordering or cutting them would help. Preserve
 meaningful distinctions, counterevidence, and purposeful rhetorical choices.
 
+For an evidence-based argument, check whether consequential counterevidence is
+isolated at the end while earlier claims remain broader than that evidence permits.
+Identify the affected earlier passages and recommend proportionate revisions; do
+not force counterarguments into every section or weaken a supported conclusion.
+In dense central passages, mentally remove lists of names, specifications, and
+numbers: does the remaining explanation identify a mechanism and show which
+comparison or constraint makes a difference? If not, identify the gap and propose
+relevant comparative evidence or a more modest claim; remove purely decorative
+lists. Retain details that actually support the explanation.
+
 ## Developing Understanding
 
 Start with the question and the broader directions chosen with the user. Move

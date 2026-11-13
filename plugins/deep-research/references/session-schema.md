@@ -8,10 +8,12 @@ stages. There are no content fingerprints or hash comparisons. Historical
 fingerprint fields are ignored and are not rewritten or verified.
 
 For flexible work, the optional lightweight preset is a task directory containing
-`brief.md` (direction and constraints), `notes.md` (findings, source locators and
-open questions), and `draft.md` (current manuscript). It does not use this managed
+`brief.md` (direction, constraints and material counterevidence when known),
+`notes.md` (separate read sources and findings, unopened leads, and inferences),
+and `draft.md` (current manuscript). It does not use this managed
 runtime or its gates; preserve existing files and the required writing and checking
-actions. See the main skill for when to use it.
+actions, including the focused evidence check when applicable. See the main skill
+and `evidence-auditor` for details and the independent-review fallback.
 
 After answered or explicitly waived intake and direction selection, use
 `scripts/research_session.py init --session <path> --title <title> --depth deep`

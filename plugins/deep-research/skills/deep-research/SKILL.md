@@ -346,6 +346,11 @@ and rhetoric when they serve the work, rather than normalize every passage.
    material enough space and supporting context a proportionate role. Use an
    outline when helpful; in the complete workflow, save the chosen organization
    in `outline.md` without prescribing its form. No approval round is required.
+   When the user's question presupposes a conclusion, identify a known material
+   fact that could most strongly narrow or weaken it and say how it changes the
+   proposed claim. If no such fact is known yet, record the open question rather
+   than inventing one; update the direction when research reveals relevant evidence.
+   Put this in `brief.md` when using a lightweight session.
 2. **Draft through the material.** Develop observations, actions, relationships,
    changes, or mechanisms far enough for the reader to understand how the judgment
    arises. Connect material and interpretation across paragraphs rather than
@@ -365,6 +370,9 @@ and rhetoric when they serve the work, rather than normalize every passage.
    counterarguments and limits where they affect the conclusion. In the complete
    workflow, the subagent performs the structural review and the lead decides
    and implements revisions; follow the division of labor above in flexible work.
+   Check whether consequential counterevidence actually changes the earlier claims
+   it affects, and whether dense lists explain a discriminating causal mechanism;
+   follow `insight-architect` for these reviews.
 4. **Polish language and check affected meaning.** The lead performs the final
    expression pass after structural revision, reading the resulting text in context. For
    Chinese, prioritize natural, concrete, accurate language, precise verbs,
@@ -394,7 +402,9 @@ images must not masquerade as observed evidence.
 
 Check significant factual claims, quotations, numbers, and citations against
 their sources, and ensure central conclusions fit the evidence. Use
-`evidence-auditor` when a focused review would help. Review after substantive
+`evidence-auditor` when a focused review would help. In lightweight work with
+news facts, financial or business data, or strong causal claims or forecasts,
+use it for the focused pre-delivery check described in that skill. Review after substantive
 changes where meaning or facts may have drifted; do not repeat a full audit after
 every edit. For uncertainty that matters, narrow the conclusion, explain the
 limitation, or investigate further.
@@ -425,8 +435,13 @@ request not to save files overrides this default. In flexible operation, decide
 whether persistence helps with length, resumption, or handoff; it is not mandatory.
 For medium-sized flexible work where persistence helps, offer or use a lightweight
 session: create `brief.md`, `notes.md`, and `draft.md` in a task directory after
-intake. Keep the agreed direction in the brief; put source links, exact locators,
-key findings and open questions in notes; maintain the current manuscript in draft.
+intake. Keep the agreed direction and any known material counterevidence in the
+brief. Separate notes into three sections: sources actually read with direct links
+or file locations, dates where available, exact locators, and what they establish;
+unopened search snippets or redirect-only leads; and the author's inferences and
+working hypotheses. Keep material open questions alongside the relevant section.
+Do not label a whole heading or mixed passage as verified.
+Maintain the current manuscript in draft.
 Reuse existing files and honor user file and location constraints. This preset has
 no managed runtime or gates; continue actual source checks, structural review,
 and polishing. Do not replace an existing managed session with these three files.
